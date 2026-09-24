@@ -1,0 +1,25 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Driver</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="style.css"></head><body>
+<script src="api.js"></script><script>navbar("driver.html")</script>
+<main><h1>Pickup jobs</h1><p class="sub">Shelter-approved pickups, most urgent first.</p>
+<div id="list"></div><div id="err" class="msg err" hidden></div></main>
+<script>
+async function draw(){
+  try{
+    const items = (await getDonations()).filter(d => [S.ACCEPTED,S.PICKED_UP].includes(d.status))
+      .sort((a,b)=> new Date(a.expires_at)-new Date(b.expires_at));
+    err.hidden = true;
+    list.innerHTML = items.length ? items.map(d => { const t = timeLeft(d.expires_at);
+      const next = d.status===S.ACCEPTED ? [S.PICKED_UP,"Mark picked up"] : [S.DELIVERED,"Mark delivered"];
+      return `<div class="job"><h3>${d.quantity_portions} portions: ${d.food_description}</h3>
+      <p>Pick up: ${d.donor_name}, ${d.pickup_address}</p><p>Deliver to: ${d.matched_org_name||"assigned shelter"}${d.distance_km!=null?` (${d.distance_km} km)`:""}</p>
+      <span class="tag ${t.cls}">${t.text}</span>
+      <button onclick="go(${d.id},'${next[0]}')">${next[1]}</button></div>`}).join("")
+      : `<div class="empty">No pickups waiting. Jobs appear once a shelter accepts.</div>`;
+  }catch(e){ err.hidden=false; err.textContent = e.message + ". Is the backend running?"; }
+}
+async function go(id,s){ try{ await setStatus(id,s); draw(); }catch(e){ err.hidden=false; err.textContent=e.message; } }
+draw(); setInterval(draw,10000);
+</script></body></html>

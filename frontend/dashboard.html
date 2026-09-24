@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Impact dashboard - Surplus-to-Shelter</title>
+<link rel="stylesheet" href="shared.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+<style>
+  .hero { padding:1.5rem 0 1rem; }
+  .hero .big { font-size:clamp(4rem, 14vw, 8rem); font-weight:800; line-height:1; color:var(--leaf); }
+  .hero .big span { font-size:1.4rem; font-weight:600; color:var(--muted); margin-left:.5rem; }
+  .facts { display:flex; flex-wrap:wrap; border-top:2px solid var(--leaf); margin:1rem 0 1.5rem; }
+  .facts div { flex:1 1 150px; padding:.8rem 1rem .8rem 0; }
+  .facts b { display:block; font-size:1.7rem; }
+  .cols { display:grid; grid-template-columns:1fr 1.4fr; gap:1rem; }
+  @media (max-width:760px) { .cols { grid-template-columns:1fr; } }
+  .row { display:flex; justify-content:space-between; gap:.75rem; padding:.7rem 0; border-bottom:1px solid var(--line); }
+  .row:last-child { border-bottom:0; } .row .right { display:flex; flex-direction:column; gap:.3rem; align-items:flex-end; }
+</style>
+</head>
+<body>
+<nav><b>Surplus-to-Shelter</b><a href="donor.html">Donate</a><a href="dashboard.html" class="active">Dashboard</a><a href="map.html">Live map</a></nav>
+<main>
+  <section class="hero">
+    <h1>Food rescued so far</h1>
+    <div class="big"><span id="meals">0</span><span>meals</span></div>
+  </section>
+  <section class="facts">
+    <div><b id="kg">0</b>kg of food diverted from landfill</div>
+    <div><b id="co2">0</b>kg CO2e avoided</div>
+    <div><b id="active">0</b>donations in progress</div>
+    <div><b id="orgs">0</b>partner shelters</div>
+  </section>
+  <section class="cols">
+    <div class="panel"><h2>Donations by status</h2><canvas id="statusChart" height="260"></canvas></div>
+    <div class="panel"><h2>Latest donations</h2><div id="recent"></div></div>
+  </section>
+  <p><small id="assumptions"></small></p>
+  <button id="testToast">Test notification</button>
+</main>
+<script src="config.js"></script><script src="fake-data.js"></script><script src="shared.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+let chart;
+$("assumptions").textContent = `Estimates: 1 portion = 1 meal = about ${KG_PER_PORTION} kg of food; about ${CO2E_PER_KG} kg CO2e avoided per kg of food rescued.`;
+$("testToast").onclick = () => showToast("SMS sent to Hope Shelter: 25 portions available for pickup");
+
+async function loadDashboard() {
+  try {
+    const [stats, donations] = await Promise.all([getStats(), getDonations()]);
+    $("meals").textContent = stats.total_meals_saved;
+    $("kg").textContent = Math.round(stats.total_meals_saved * KG_PER_PORTION);
+    $("co2").textContent = Math.round(stats.co2_saved_kg);
+    $("active").textContent = stats.active_donations;
+    $("orgs").textContent = stats.total_orgs;
+
+    const counts = {};
+    donations.forEach(d => counts[d.status] = (counts[d.status] || 0) + 1);
+    const keys = Object.keys(counts);
+    if (chart) chart.destroy();
+    chart = new Chart($("statusChart"), {
+      type: "doughnut",
+      data: { labels: keys.map(k => (STATUS_INFO[k] || { label: k }).label),
+              datasets: [{ data: keys.map(k => counts[k]), backgroundColor: keys.map(k => (STATUS_INFO[k] || {}).color || "#8f9b94") }] },
+      options: { plugins: { legend: { position: "bottom" } } }
+    });
+
+    const finished = ["delivered", "rejected", "expired"];
+    $("recent").innerHTML = donations.slice().sort((a, b) => b.id - a.id).slice(0, 6).map(d => `
+      <div class="row">
+        <div><b>${escapeHtml(d.donor_name)}</b>, ${d.quantity_portions} portions<br>
+          <small>${escapeHtml(d.food_description)}${d.matched_org_name ? " to " + escapeHtml(d.matched_org_name) : ""}</small></div>
+        <div class="right">${getStatusBadge(d.status)}${finished.includes(d.status) ? "" : getExpiryBadge(d.expires_at)}</div>
+      </div>`).join("");
+  } catch (err) {
+    showToast("Could not load data. Is the Flask server running?");
+    console.error(err);
+  }
+}
+loadDashboard();
+setInterval(loadDashboard, 10000);  // refresh every 10 seconds so it feels live
+startExpiryTimers();
+</script>
+</body>
+</html>

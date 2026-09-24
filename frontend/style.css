@@ -1,0 +1,45 @@
+:root{--bg:#F3F6F2;--ink:#17231F;--pine:#14463A;--leaf:#2F7D5B;--amber:#E9A319;--red:#C8452D;--line:#D5DDD7;--card:#fff}
+@media(prefers-color-scheme:dark){:root{--bg:#101815;--ink:#EAF1ED;--pine:#8BD3B0;--leaf:#5FB88A;--line:#2A3A33;--card:#17231F}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Bricolage Grotesque",system-ui,sans-serif}
+nav{display:flex;gap:6px;align-items:center;padding:12px 20px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+nav b{margin-right:auto;color:var(--pine);font-size:18px}
+nav a{padding:6px 12px;border-radius:8px;color:var(--ink);text-decoration:none}
+nav a.on{background:var(--pine);color:var(--bg)}
+main{max-width:720px;margin:0 auto;padding:24px 16px}
+h1{margin:0 0 4px;font-size:28px;color:var(--pine)}
+p.sub{margin:0 0 20px;opacity:.75}
+form,.job{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:12px}
+label{display:block;font-weight:600;margin:12px 0 4px}
+input,select,textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font:inherit;background:var(--bg);color:var(--ink)}
+button{margin-top:16px;padding:10px 18px;border:0;border-radius:8px;background:var(--pine);color:var(--bg);font:inherit;font-weight:600;cursor:pointer}
+button.alt{background:transparent;color:var(--red);border:1px solid var(--red);margin-left:8px}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.job h3{margin:0 0 4px}.job p{margin:2px 0}
+.tag{display:inline-block;padding:2px 10px;border-radius:99px;font-size:14px;font-weight:600;color:#fff;background:var(--leaf)}
+.tag.warn{background:var(--amber);color:#17231F}.tag.bad{background:var(--red)}
+.msg{padding:12px;border-radius:8px;margin-top:12px;background:var(--card);border-left:4px solid var(--leaf)}
+.msg.err{border-color:var(--red)}
+.empty{opacity:.7;padding:24px;text-align:center;border:1px dashed var(--line);border-radius:12px}
+
+/* ===== HOME PAGE ===== */
+.home h1{font-size:34px;margin-top:24px}
+a.big{display:block;padding:20px;margin-bottom:12px;background:var(--card);border:1px solid var(--line);border-left:6px solid var(--pine);border-radius:12px;color:var(--ink);text-decoration:none}
+a.big b{display:block;font-size:20px;color:var(--pine)}
+a.big span{opacity:.75}
+a.big:hover,a.big:focus-visible{border-left-color:var(--amber)}
+.sub a{color:var(--pine)}
+
+/* ===== MOBILE (phones) ===== */
+button{min-height:44px}
+input,select{min-height:44px}
+@media(max-width:600px){
+  main{padding:16px 12px}
+  h1{font-size:24px}
+  nav{padding:10px 12px}
+  nav b{flex-basis:100%}
+  nav a{padding:10px 12px}
+  form button,.job button{width:100%}
+  button.alt{margin-left:0;margin-top:8px}
+  .job h3{font-size:17px}
+}

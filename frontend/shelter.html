@@ -1,0 +1,29 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Shelter</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="style.css"></head><body>
+<script src="api.js"></script><script>navbar("shelter.html")</script>
+<main><h1>Incoming food</h1><p class="sub">Accept what you can take. Drivers only see food you accept.</p>
+<label for="org">Your shelter</label><select id="org"></select>
+<div id="list" style="margin-top:16px"></div><div id="err" class="msg err" hidden></div></main>
+<script>
+async function draw(){
+  try{
+    const items = (await getDonations(org.value)).filter(d => [S.MATCHED,S.ACCEPTED].includes(d.status));
+    err.hidden = true;
+    list.innerHTML = items.length ? items.map(d => { const t = timeLeft(d.expires_at); return `
+      <div class="job"><h3>${d.quantity_portions} portions: ${d.food_description}</h3>
+      <p>From ${d.donor_name}, ${d.pickup_address}${d.distance_km!=null?` (${d.distance_km} km)`:""}</p>
+      <span class="tag ${t.cls}">${t.text}</span>
+      ${d.status===S.MATCHED
+        ? `<br><button onclick="act(${d.id},'${S.ACCEPTED}')">Accept</button><button class="alt" onclick="act(${d.id},'${S.REJECTED}')">Reject</button>`
+        : `<span class="tag">Accepted, waiting for driver</span>`}</div>`}).join("")
+      : `<div class="empty">No incoming food right now. New matches appear here.</div>`;
+  }catch(e){ err.hidden=false; err.textContent = e.message + ". Is the backend running?"; }
+}
+async function act(id,s){ try{ await setStatus(id,s); draw(); }catch(e){ err.hidden=false; err.textContent=e.message; } }
+(async()=>{ try{ const orgs = await getOrgs();
+  org.innerHTML = orgs.map(o=>`<option value="${o.id}">${o.name}</option>`).join("");
+  org.onchange = draw; draw(); setInterval(draw,10000);
+}catch(e){ err.hidden=false; err.textContent="Could not load shelters: "+e.message; } })();
+</script></body></html>

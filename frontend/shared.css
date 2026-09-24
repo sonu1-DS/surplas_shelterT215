@@ -1,0 +1,22 @@
+@import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap");
+:root { --leaf:#1c4a38; --turmeric:#e9a23b; --chili:#c8402f; --bg:#f2f5f0; --ink:#1d2a24; --muted:#67746c; --line:#dce4dc; }
+* { box-sizing: border-box; }
+body { margin:0; font-family:"Bricolage Grotesque", system-ui, sans-serif; background:var(--bg); color:var(--ink); line-height:1.5; }
+nav { display:flex; gap:1.5rem; align-items:center; padding:.85rem 1.5rem; background:var(--leaf); color:#fff; flex-wrap:wrap; }
+nav b { margin-right:auto; font-size:1.15rem; font-weight:800; }
+nav a { color:#fff; text-decoration:none; opacity:.75; padding-bottom:2px; }
+nav a.active { opacity:1; border-bottom:2px solid var(--turmeric); }
+main { max-width:1100px; margin:0 auto; padding:1.5rem; }
+h1, h2 { margin:0; font-weight:800; }
+h2 { font-size:1.1rem; margin-bottom:.75rem; }
+small, .muted { color:var(--muted); }
+.panel { background:#fff; border:1px solid var(--line); border-radius:10px; padding:1.1rem; }
+.badge { display:inline-block; padding:.12rem .6rem; border-radius:99px; font-size:.78rem; font-weight:600; white-space:nowrap; }
+.badge.green { background:#dcf1e3; color:#17603a; } .badge.yellow { background:#fbeccb; color:#7a5306; }
+.badge.red { background:#f7d9d4; color:#8f2a1d; }   .badge.grey { background:#e6ebe7; color:#55625a; }
+.badge.blue { background:#dbe7fb; color:#1f4fa8; }  .badge.purple { background:#e8ddf8; color:#5a35a3; }
+.badge.orange { background:#fbe6c4; color:#7a4a06; }
+#toast-box { position:fixed; right:1rem; bottom:1rem; display:flex; flex-direction:column; gap:.5rem; z-index:9999; }
+.toast { background:var(--ink); color:#fff; padding:.7rem 1rem; border-left:4px solid var(--turmeric); border-radius:6px; max-width:320px; }
+button { font:inherit; cursor:pointer; padding:.45rem .9rem; border-radius:8px; border:1px solid var(--leaf); background:#fff; color:var(--leaf); }
+button:focus-visible, a:focus-visible { outline:3px solid var(--turmeric); outline-offset:2px; }

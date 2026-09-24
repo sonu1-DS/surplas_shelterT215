@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Live map - Surplus-to-Shelter</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<link rel="stylesheet" href="shared.css">
+<style>
+  #map { height:calc(100vh - 210px); min-height:420px; border:1px solid var(--line); border-radius:10px; }
+  .key { display:flex; gap:1.25rem; flex-wrap:wrap; margin:.5rem 0 .9rem; }
+  .dot { display:inline-block; width:.8rem; height:.8rem; border-radius:50%; margin-right:.35rem; vertical-align:middle; }
+</style>
+</head>
+<body>
+<nav><b>Surplus-to-Shelter</b><a href="donor.html">Donate</a><a href="dashboard.html">Dashboard</a><a href="map.html" class="active">Live map</a></nav>
+<main>
+  <h1>Live rescue map</h1>
+  <div class="key">
+    <span><i class="dot" style="background:#1c4a38"></i>Shelter</span>
+    <span><i class="dot" style="background:#e9a23b"></i>Pickup point (colour shows status)</span>
+    <span>Dashed line: pickup to matched shelter</span>
+  </div>
+  <div id="map"></div>
+</main>
+<script src="config.js"></script><script src="fake-data.js"></script><script src="shared.js"></script>
+<script>
+const map = L.map("map").setView(MAP_CENTER, 12);
+L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "&copy; OpenStreetMap contributors" }).addTo(map);
+const layer = L.layerGroup().addTo(map);
+
+async function loadMap() {
+  try {
+    const [orgs, donations] = await Promise.all([getOrgs(), getDonations()]);
+    layer.clearLayers();
+    const orgById = {};
+    orgs.forEach(o => orgById[o.id] = o);
+
+    orgs.forEach(o => L.circleMarker([o.lat, o.lng], { radius: 10, color: "#fff", weight: 2, fillColor: "#1c4a38", fillOpacity: 1 })
+      .bindPopup(`<b>${escapeHtml(o.name)}</b><br>${escapeHtml(o.address)}<br>Capacity: ${o.capacity_portions} portions`).addTo(layer));
+
+    donations.filter(d => !["delivered", "rejected", "expired"].includes(d.status)).forEach(d => {
+      const org = orgById[d.matched_org_id];
+      if (org) L.polyline([[d.lat, d.lng], [org.lat, org.lng]], { color: "#e9a23b", weight: 3, dashArray: "6 8" }).addTo(layer);
+      const color = (STATUS_INFO[d.status] || {}).color || "#8f9b94";
+      L.circleMarker([d.lat, d.lng], { radius: 8, color: "#fff", weight: 2, fillColor: color, fillOpacity: 1 })
+        .bindPopup(`<b>${escapeHtml(d.donor_name)}</b><br>${escapeHtml(d.food_description)}, ${d.quantity_portions} portions<br>
+          ${getStatusBadge(d.status)} ${getExpiryBadge(d.expires_at)}<br>
+          ${org ? "To " + escapeHtml(org.name) + (d.distance_km ? ", " + d.distance_km + " km" : "") : "No shelter matched yet"}`).addTo(layer);
+    });
+  } catch (err) {
+    showToast("Could not load map data. Is the Flask server running?");
+    console.error(err);
+  }
+}
+loadMap();
+setInterval(loadMap, 10000);
+startExpiryTimers();
+</script>
+</body>
+</html>

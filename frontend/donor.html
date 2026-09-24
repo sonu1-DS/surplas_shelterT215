@@ -1,0 +1,46 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Donate food</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="style.css"></head><body>
+<script src="api.js"></script><script>navbar("donor.html")</script>
+<main><h1>Post surplus food</h1><p class="sub">Takes under a minute. We find the nearest shelter that can take it.</p>
+<form id="f" novalidate>
+<label for="n">Your name or business</label><input id="n" autocomplete="organization">
+<label for="d">What food is it?</label><input id="d" placeholder="e.g. Veg biryani and dal">
+<label for="q">Portions</label><input id="q" type="number" min="1" step="1" inputmode="numeric">
+<label for="a">Pickup area</label>
+<select id="a"><option value="26.9124,75.7873">City Palace area</option><option value="26.9239,75.8267">Hawa Mahal area</option><option value="26.8851,75.8106">Sindhi Camp area</option><option value="26.9855,75.8513">Amber area</option></select>
+<label for="e">Safe to donate for the next</label>
+<select id="e"><option value="60">1 hour</option><option value="120" selected>2 hours</option><option value="240">4 hours</option><option value="360">6 hours</option></select>
+<button id="btn">Post donation</button></form>
+<div id="out" aria-live="polite"></div></main>
+<script>
+function showErr(text, field){ out.innerHTML = `<div class="msg err">${text}</div>`; if(field) field.focus(); }
+function validate(){
+  const qty = Number(q.value);
+  if(!n.value.trim())  return ["Enter your name or business.", n];
+  if(!d.value.trim())  return ["Describe the food, for example: veg biryani.", d];
+  if(!q.value || !Number.isInteger(qty) || qty < 1) return ["Portions must be a whole number, 1 or more.", q];
+  if(qty > 5000)       return ["That is a very large amount. Check the number of portions.", q];
+  return null;
+}
+f.onsubmit = async ev => {
+  ev.preventDefault(); out.innerHTML = "";
+  const problem = validate();
+  if(problem) return showErr(...problem);
+  btn.disabled = true; btn.textContent = "Posting...";
+  const [lat,lng] = a.value.split(",").map(Number);
+  try{
+    const r = await postDonation({donor_name:n.value.trim(), food_description:d.value.trim(), quantity_portions:Number(q.value),
+      pickup_address:a.options[a.selectedIndex].text, lat, lng,
+      expires_at:localISO(new Date(Date.now()+ +e.value*60000))});
+    out.innerHTML = r.status===S.MATCHED
+      ? `<div class="msg">Matched to <b>${r.matched_org_name||"a shelter"}</b>${r.distance_km!=null?`, ${r.distance_km} km away`:""}. The shelter will confirm shortly.</div>`
+      : `<div class="msg err">No shelter has space right now. We'll keep looking.</div>`;
+    f.reset();
+  }catch(err){
+    showErr(err.name==="TypeError" ? "Cannot reach the server. Check that the backend is running, then try again."
+                                   : `${err.message}. Check the form and try again.`);
+  }finally{ btn.disabled = false; btn.textContent = "Post donation"; }
+};
+</script></body></html>
