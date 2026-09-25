@@ -1,0 +1,1977 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0"
+>
+
+<title data-i18n="notifications.pageTitle">
+  Notifications | Surplus-to-Shelter
+</title>
+
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600;700;800&display=swap"
+>
+
+<style>
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+
+  font-family:
+    "Bricolage Grotesque",
+    system-ui,
+    sans-serif;
+
+  background:#f4f7f3;
+
+  color:#17231f;
+}
+
+
+/* =====================================================
+   NAVBAR
+===================================================== */
+
+nav{
+  min-height:70px;
+
+  display:flex;
+
+  align-items:center;
+
+  padding:0 7%;
+
+  background:#ffffff;
+
+  border-bottom:1px solid #dce4dc;
+
+  position:sticky;
+
+  top:0;
+
+  z-index:100;
+}
+
+.logo{
+  font-size:21px;
+
+  font-weight:800;
+
+  color:#14463a;
+
+  margin-right:auto;
+
+  white-space:nowrap;
+}
+
+nav a{
+  margin-left:25px;
+
+  text-decoration:none;
+
+  color:#34473f;
+
+  font-weight:600;
+
+  white-space:nowrap;
+}
+
+nav a:hover{
+  color:#2f7d5b;
+}
+
+nav a.active{
+  color:#14463a;
+
+  border-bottom:2px solid #e9a319;
+
+  padding-bottom:5px;
+}
+
+.notification-nav{
+  position:relative;
+}
+
+.nav-badge{
+  position:absolute;
+
+  top:-10px;
+
+  right:-13px;
+
+  min-width:20px;
+
+  height:20px;
+
+  padding:0 5px;
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:center;
+
+  background:#c93c2d;
+
+  color:white;
+
+  border:2px solid white;
+
+  border-radius:20px;
+
+  font-size:11px;
+
+  font-weight:800;
+}
+
+
+/* =====================================================
+   LANGUAGE SELECTOR
+===================================================== */
+
+.language-control{
+  display:flex;
+
+  align-items:center;
+
+  gap:7px;
+
+  margin-left:22px;
+}
+
+.language-icon{
+  font-size:17px;
+}
+
+.language-selector{
+  width:auto;
+
+  min-width:105px;
+
+  padding:8px 10px;
+
+  border:1px solid #cbd8cf;
+
+  border-radius:9px;
+
+  background:#ffffff;
+
+  color:#14463a;
+
+  font-family:inherit;
+
+  font-size:14px;
+
+  font-weight:700;
+
+  cursor:pointer;
+
+  outline:none;
+}
+
+.language-selector:focus{
+  border-color:#2f7d5b;
+
+  box-shadow:
+    0 0 0 3px rgba(47,125,91,.10);
+}
+
+
+/* =====================================================
+   PAGE
+===================================================== */
+
+.page{
+  max-width:1100px;
+
+  margin:auto;
+
+  padding:55px 7%;
+}
+
+.heading{
+  display:flex;
+
+  justify-content:space-between;
+
+  gap:20px;
+
+  align-items:flex-end;
+
+  margin-bottom:28px;
+}
+
+.eyebrow{
+  display:inline-block;
+
+  padding:7px 13px;
+
+  background:#dff1e7;
+
+  color:#17603a;
+
+  border-radius:30px;
+
+  font-weight:700;
+
+  margin-bottom:14px;
+}
+
+.heading h1{
+  margin:0 0 10px;
+
+  color:#14463a;
+
+  font-size:46px;
+}
+
+.heading p{
+  margin:0;
+
+  color:#69766f;
+
+  font-size:17px;
+
+  max-width:640px;
+
+  line-height:1.55;
+}
+
+
+/* =====================================================
+   MARK ALL BUTTON
+===================================================== */
+
+.mark-all{
+  padding:12px 18px;
+
+  border:none;
+
+  border-radius:10px;
+
+  background:#14463a;
+
+  color:white;
+
+  font-family:inherit;
+
+  font-weight:800;
+
+  font-size:14px;
+
+  cursor:pointer;
+
+  white-space:nowrap;
+}
+
+.mark-all:hover{
+  background:#2f7d5b;
+}
+
+.mark-all:disabled{
+  opacity:.5;
+
+  cursor:not-allowed;
+}
+
+
+/* =====================================================
+   SUMMARY
+===================================================== */
+
+.summary{
+  display:grid;
+
+  grid-template-columns:
+    repeat(3,1fr);
+
+  gap:15px;
+
+  margin-bottom:24px;
+}
+
+.stat{
+  background:#ffffff;
+
+  border:1px solid #dce4dc;
+
+  border-radius:15px;
+
+  padding:18px;
+}
+
+.stat small{
+  color:#6c7972;
+}
+
+.stat strong{
+  display:block;
+
+  margin-top:4px;
+
+  font-size:29px;
+
+  color:#14463a;
+}
+
+
+/* =====================================================
+   PANEL
+===================================================== */
+
+.panel{
+  background:#ffffff;
+
+  border:1px solid #dce4dc;
+
+  border-radius:18px;
+
+  padding:24px;
+
+  box-shadow:
+    0 12px 35px rgba(20,70,58,.05);
+}
+
+.panel-head{
+  display:flex;
+
+  justify-content:space-between;
+
+  align-items:center;
+
+  gap:15px;
+
+  margin-bottom:20px;
+}
+
+.panel-head h2{
+  margin:0;
+
+  color:#14463a;
+}
+
+.live{
+  display:inline-flex;
+
+  align-items:center;
+
+  gap:7px;
+
+  background:#eaf5ee;
+
+  color:#17603a;
+
+  padding:6px 10px;
+
+  border-radius:30px;
+
+  font-size:13px;
+
+  font-weight:700;
+}
+
+.live-dot{
+  width:8px;
+
+  height:8px;
+
+  border-radius:50%;
+
+  background:#2e9b57;
+}
+
+
+/* =====================================================
+   NOTIFICATION
+===================================================== */
+
+.notification{
+  display:grid;
+
+  grid-template-columns:
+    48px 1fr auto;
+
+  gap:14px;
+
+  align-items:flex-start;
+
+  padding:18px;
+
+  border:1px solid #dce4dc;
+
+  border-radius:14px;
+
+  margin-bottom:12px;
+
+  background:#ffffff;
+
+  transition:.2s;
+}
+
+.notification:last-child{
+  margin-bottom:0;
+}
+
+.notification.unread{
+  background:#f0f8f3;
+
+  border-color:#bdd9c7;
+}
+
+.notification:hover{
+  transform:translateY(-1px);
+
+  box-shadow:
+    0 8px 20px rgba(20,70,58,.06);
+}
+
+.icon{
+  width:46px;
+
+  height:46px;
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:center;
+
+  border-radius:12px;
+
+  background:#eaf5ee;
+
+  font-size:21px;
+}
+
+.notification.unread .icon{
+  background:#14463a;
+}
+
+.title-row{
+  display:flex;
+
+  align-items:center;
+
+  gap:8px;
+
+  flex-wrap:wrap;
+}
+
+.notification h3{
+  margin:0;
+
+  color:#14463a;
+
+  font-size:17px;
+}
+
+.new-badge{
+  display:inline-block;
+
+  background:#e9a319;
+
+  color:#ffffff;
+
+  border-radius:30px;
+
+  padding:3px 8px;
+
+  font-size:10px;
+
+  font-weight:800;
+}
+
+.notification p{
+  margin:7px 0 8px;
+
+  color:#57675f;
+
+  line-height:1.55;
+}
+
+.time{
+  font-size:12px;
+
+  color:#8a958f;
+}
+
+.read-btn{
+  border:1px solid #c6d3ca;
+
+  background:#ffffff;
+
+  color:#14463a;
+
+  border-radius:8px;
+
+  padding:8px 11px;
+
+  font-family:inherit;
+
+  font-size:12px;
+
+  font-weight:700;
+
+  cursor:pointer;
+}
+
+.read-btn:hover{
+  background:#eef5f0;
+}
+
+.read-btn:disabled{
+  opacity:.55;
+
+  cursor:not-allowed;
+}
+
+
+/* =====================================================
+   EMPTY / ERROR
+===================================================== */
+
+.empty{
+  padding:55px 20px;
+
+  text-align:center;
+
+  color:#748079;
+
+  border:1px dashed #cdd8d0;
+
+  border-radius:14px;
+}
+
+.empty-icon{
+  font-size:45px;
+
+  margin-bottom:10px;
+}
+
+.error{
+  background:#fff0ed;
+
+  border:1px solid #e7bbb2;
+
+  color:#a03526;
+
+  border-radius:11px;
+
+  padding:14px;
+
+  margin-bottom:18px;
+}
+
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media(max-width:1000px){
+
+  nav{
+    padding-left:4%;
+    padding-right:4%;
+  }
+
+  nav a{
+    margin-left:14px;
+  }
+
+  .language-control{
+    margin-left:14px;
+  }
+
+}
+
+@media(max-width:850px){
+
+  nav a{
+    display:none;
+  }
+
+  .language-control{
+    margin-left:auto;
+  }
+
+  .heading{
+    flex-direction:column;
+
+    align-items:flex-start;
+  }
+
+  .summary{
+    grid-template-columns:1fr;
+  }
+
+}
+
+@media(max-width:600px){
+
+  .page{
+    padding:35px 18px;
+  }
+
+  .heading h1{
+    font-size:37px;
+  }
+
+  .notification{
+    grid-template-columns:
+      44px 1fr;
+  }
+
+  .read-btn{
+    grid-column:2;
+
+    width:fit-content;
+  }
+
+  .logo{
+    font-size:17px;
+  }
+
+  .language-selector{
+    min-width:90px;
+  }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<!-- =====================================================
+     NAVBAR
+===================================================== -->
+
+<nav>
+
+  <div class="logo">
+    🍲 Surplus-to-Shelter
+  </div>
+
+
+  <a
+    href="index.html"
+    data-i18n="nav.home">
+    Home
+  </a>
+
+
+  <a
+    href="donor.html"
+    data-i18n="nav.donate">
+    Donate
+  </a>
+
+
+  <a
+    href="shelter.html"
+    data-i18n="nav.shelter">
+    Shelter
+  </a>
+
+
+  <a
+    href="driver.html"
+    data-i18n="nav.driver">
+    Driver
+  </a>
+
+
+  <a
+    href="map.html"
+    data-i18n="nav.map">
+    Live Map
+  </a>
+
+
+  <a
+    href="dashboard.html"
+    data-i18n="nav.impact">
+    Impact
+  </a>
+
+
+  <a
+    href="notifications.html"
+    class="active notification-nav"
+    data-i18n-title="notifications.navTitle">
+
+    🔔
+
+    <span
+      id="navBadge"
+      class="nav-badge"
+      hidden>
+      0
+    </span>
+
+  </a>
+
+
+  <div class="language-control">
+
+    <span class="language-icon">
+      🌐
+    </span>
+
+    <select
+      class="language-selector"
+      aria-label="Language">
+
+      <option value="en">
+        English
+      </option>
+
+      <option value="hi">
+        हिन्दी
+      </option>
+
+    </select>
+
+  </div>
+
+</nav>
+
+
+<main class="page">
+
+
+<!-- =====================================================
+     HEADING
+===================================================== -->
+
+<section class="heading">
+
+
+  <div>
+
+    <div
+      class="eyebrow"
+      data-i18n="notifications.eyebrow">
+
+      🔔 Live Activity Center
+
+    </div>
+
+
+    <h1 data-i18n="notifications.title">
+
+      Rescue notifications
+
+    </h1>
+
+
+    <p data-i18n="notifications.description">
+
+      Follow every important event from
+      Smart Match to successful food delivery.
+
+    </p>
+
+  </div>
+
+
+  <button
+    id="markAllBtn"
+    class="mark-all"
+    data-i18n="notifications.markAll">
+
+    ✓ Mark all as read
+
+  </button>
+
+
+</section>
+
+
+<!-- =====================================================
+     SUMMARY
+===================================================== -->
+
+<section class="summary">
+
+
+  <div class="stat">
+
+    <small data-i18n="notifications.total">
+      Total notifications
+    </small>
+
+    <strong id="totalCount">
+      0
+    </strong>
+
+  </div>
+
+
+  <div class="stat">
+
+    <small data-i18n="notifications.unread">
+      Unread
+    </small>
+
+    <strong id="unreadCount">
+      0
+    </strong>
+
+  </div>
+
+
+  <div class="stat">
+
+    <small data-i18n="notifications.latest">
+      Latest activity
+    </small>
+
+    <strong
+      id="latestCount"
+      style="font-size:18px">
+
+      Waiting...
+
+    </strong>
+
+  </div>
+
+
+</section>
+
+
+<div
+  id="errorBox"
+  class="error"
+  hidden>
+</div>
+
+
+<!-- =====================================================
+     NOTIFICATIONS
+===================================================== -->
+
+<section class="panel">
+
+
+  <div class="panel-head">
+
+    <h2 data-i18n="notifications.recentActivity">
+
+      Recent rescue activity
+
+    </h2>
+
+
+    <div class="live">
+
+      <span class="live-dot"></span>
+
+      <span data-i18n="common.live">
+        Live
+      </span>
+
+    </div>
+
+  </div>
+
+
+  <div id="list">
+
+    <div
+      class="empty"
+      data-i18n="notifications.loading">
+
+      Loading activity...
+
+    </div>
+
+  </div>
+
+
+</section>
+
+
+</main>
+
+
+<script src="api.js"></script>
+<script src="i18n.js"></script>
+
+
+<script>
+
+/* =====================================================
+   NOTIFICATION TRANSLATIONS
+===================================================== */
+
+Object.assign(
+  translations.en,
+  {
+
+    "notifications.pageTitle":
+      "Notifications | Surplus-to-Shelter",
+
+    "notifications.navTitle":
+      "Notifications",
+
+    "notifications.eyebrow":
+      "🔔 Live Activity Center",
+
+    "notifications.title":
+      "Rescue notifications",
+
+    "notifications.description":
+      "Follow every important event from Smart Match to successful food delivery.",
+
+    "notifications.markAll":
+      "✓ Mark all as read",
+
+    "notifications.total":
+      "Total notifications",
+
+    "notifications.unread":
+      "Unread",
+
+    "notifications.latest":
+      "Latest activity",
+
+    "notifications.waiting":
+      "Waiting...",
+
+    "notifications.recentActivity":
+      "Recent rescue activity",
+
+    "notifications.loading":
+      "Loading activity...",
+
+    "notifications.new":
+      "NEW",
+
+    "notifications.markRead":
+      "Mark read",
+
+    "notifications.updating":
+      "Updating...",
+
+    "notifications.noActivity":
+      "No rescue activity yet",
+
+    "notifications.noActivityDesc":
+      "Post a new donation and notifications will appear here.",
+
+    "notifications.noActivitySummary":
+      "No activity",
+
+    "notifications.donation":
+      "Donation #{id}",
+
+    "notifications.justNow":
+      "Just now",
+
+    "notifications.minutesAgo":
+      "{count} min ago",
+
+    "notifications.hoursAgo":
+      "{count} hr ago",
+
+    "notifications.dayAgo":
+      "1 day ago",
+
+    "notifications.daysAgo":
+      "{count} days ago",
+
+    "notifications.loadError":
+      "Could not load notifications: {message}",
+
+    "notifications.updateError":
+      "Could not update notification: {message}",
+
+    "notifications.markAllError":
+      "Could not mark notifications as read: {message}"
+
+  }
+);
+
+
+Object.assign(
+  translations.hi,
+  {
+
+    "notifications.pageTitle":
+      "नोटिफिकेशन | Surplus-to-Shelter",
+
+    "notifications.navTitle":
+      "नोटिफिकेशन",
+
+    "notifications.eyebrow":
+      "🔔 लाइव गतिविधि केंद्र",
+
+    "notifications.title":
+      "बचाव नोटिफिकेशन",
+
+    "notifications.description":
+      "Smart Match से लेकर सफल भोजन डिलीवरी तक हर महत्वपूर्ण घटना को यहाँ देखें।",
+
+    "notifications.markAll":
+      "✓ सभी को पढ़ा हुआ चिह्नित करें",
+
+    "notifications.total":
+      "कुल नोटिफिकेशन",
+
+    "notifications.unread":
+      "न पढ़े गए",
+
+    "notifications.latest":
+      "नवीनतम गतिविधि",
+
+    "notifications.waiting":
+      "प्रतीक्षा...",
+
+    "notifications.recentActivity":
+      "हाल की बचाव गतिविधि",
+
+    "notifications.loading":
+      "गतिविधि लोड हो रही है...",
+
+    "notifications.new":
+      "नया",
+
+    "notifications.markRead":
+      "पढ़ा हुआ चिह्नित करें",
+
+    "notifications.updating":
+      "अपडेट हो रहा है...",
+
+    "notifications.noActivity":
+      "अभी कोई बचाव गतिविधि नहीं है",
+
+    "notifications.noActivityDesc":
+      "एक नया भोजन दान पोस्ट करें और नोटिफिकेशन यहाँ दिखाई देंगे।",
+
+    "notifications.noActivitySummary":
+      "कोई गतिविधि नहीं",
+
+    "notifications.donation":
+      "दान #{id}",
+
+    "notifications.justNow":
+      "अभी",
+
+    "notifications.minutesAgo":
+      "{count} मिनट पहले",
+
+    "notifications.hoursAgo":
+      "{count} घंटे पहले",
+
+    "notifications.dayAgo":
+      "1 दिन पहले",
+
+    "notifications.daysAgo":
+      "{count} दिन पहले",
+
+    "notifications.loadError":
+      "नोटिफिकेशन लोड नहीं हो सके: {message}",
+
+    "notifications.updateError":
+      "नोटिफिकेशन अपडेट नहीं हो सका: {message}",
+
+    "notifications.markAllError":
+      "नोटिफिकेशन को पढ़ा हुआ चिह्नित नहीं किया जा सका: {message}"
+
+  }
+);
+
+
+/* =====================================================
+   ELEMENTS
+===================================================== */
+
+const list =
+  document.getElementById(
+    "list"
+  );
+
+const totalCount =
+  document.getElementById(
+    "totalCount"
+  );
+
+const unreadCount =
+  document.getElementById(
+    "unreadCount"
+  );
+
+const latestCount =
+  document.getElementById(
+    "latestCount"
+  );
+
+const navBadge =
+  document.getElementById(
+    "navBadge"
+  );
+
+const markAllBtn =
+  document.getElementById(
+    "markAllBtn"
+  );
+
+const errorBox =
+  document.getElementById(
+    "errorBox"
+  );
+
+
+let busy =
+  false;
+
+let lastItems =
+  [];
+
+let currentErrorState =
+  null;
+
+
+/* =====================================================
+   ESCAPE HTML
+===================================================== */
+
+function esc(value){
+
+  return String(
+    value ?? ""
+  )
+
+  .replace(
+
+    /[&<>"']/g,
+
+    char => ({
+
+      "&":"&amp;",
+      "<":"&lt;",
+      ">":"&gt;",
+      '"':"&quot;",
+      "'":"&#39;"
+
+    }[char])
+
+  );
+
+}
+
+
+/* =====================================================
+   EVENT ICON
+===================================================== */
+
+function eventIcon(type){
+
+  const icons = {
+
+    matched:
+      "🧠",
+
+    posted:
+      "🍱",
+
+    rematched:
+      "🔄",
+
+    accepted:
+      "✅",
+
+    picked_up:
+      "📦",
+
+    delivered:
+      "🎉",
+
+    unmatched:
+      "⚠️"
+
+  };
+
+
+  return (
+    icons[type]
+    ||
+    "🔔"
+  );
+
+}
+
+
+/* =====================================================
+   FRIENDLY TIME
+===================================================== */
+
+function friendlyTime(iso){
+
+  if(!iso){
+
+    return "";
+
+  }
+
+
+  const created =
+    new Date(
+      iso
+    );
+
+
+  const seconds =
+
+    Math.max(
+
+      0,
+
+      Math.floor(
+
+        (
+          Date.now()
+          -
+          created.getTime()
+        )
+
+        /
+
+        1000
+
+      )
+
+    );
+
+
+  if(seconds < 60){
+
+    return t(
+      "notifications.justNow"
+    );
+
+  }
+
+
+  const minutes =
+    Math.floor(
+      seconds / 60
+    );
+
+
+  if(minutes < 60){
+
+    return t(
+      "notifications.minutesAgo",
+      {
+        count:
+          minutes
+      }
+    );
+
+  }
+
+
+  const hours =
+    Math.floor(
+      minutes / 60
+    );
+
+
+  if(hours < 24){
+
+    return t(
+      "notifications.hoursAgo",
+      {
+        count:
+          hours
+      }
+    );
+
+  }
+
+
+  const days =
+    Math.floor(
+      hours / 24
+    );
+
+
+  if(days === 1){
+
+    return t(
+      "notifications.dayAgo"
+    );
+
+  }
+
+
+  return t(
+    "notifications.daysAgo",
+    {
+      count:
+        days
+    }
+  );
+
+}
+
+
+/* =====================================================
+   ERROR
+===================================================== */
+
+function setError(
+  key,
+  variables = {}
+){
+
+  if(!key){
+
+    currentErrorState =
+      null;
+
+    errorBox.hidden =
+      true;
+
+    errorBox.textContent =
+      "";
+
+    return;
+
+  }
+
+
+  currentErrorState = {
+    key,
+    variables
+  };
+
+
+  errorBox.hidden =
+    false;
+
+
+  errorBox.textContent =
+    t(
+      key,
+      variables
+    );
+
+}
+
+
+function refreshError(){
+
+  if(!currentErrorState){
+
+    return;
+
+  }
+
+
+  errorBox.textContent =
+    t(
+      currentErrorState.key,
+      currentErrorState.variables
+    );
+
+}
+
+
+/* =====================================================
+   CARD
+===================================================== */
+
+function notificationCard(item){
+
+  const unread =
+    Number(
+      item.is_read
+    )
+    ===
+    0;
+
+
+  return `
+
+    <article
+      class="notification ${
+        unread
+        ?
+        "unread"
+        :
+        ""
+      }">
+
+
+      <div class="icon">
+
+        ${eventIcon(
+          item.event_type
+        )}
+
+      </div>
+
+
+      <div>
+
+
+        <div class="title-row">
+
+          <h3>
+
+            ${esc(
+              item.title
+            )}
+
+          </h3>
+
+
+          ${
+            unread
+
+            ?
+
+            `
+
+            <span class="new-badge">
+
+              ${t(
+                "notifications.new"
+              )}
+
+            </span>
+
+            `
+
+            :
+
+            ""
+          }
+
+        </div>
+
+
+        <p>
+
+          ${esc(
+            item.message
+          )}
+
+        </p>
+
+
+        <div class="time">
+
+          ${friendlyTime(
+            item.created_at
+          )}
+
+          ${
+            item.donation_id
+            !=
+            null
+
+            ?
+
+            `
+
+            ·
+            ${t(
+              "notifications.donation",
+              {
+                id:
+                  esc(
+                    item.donation_id
+                  )
+              }
+            )}
+
+            `
+
+            :
+
+            ""
+          }
+
+        </div>
+
+
+      </div>
+
+
+      ${
+        unread
+
+        ?
+
+        `
+
+        <button
+          class="read-btn"
+          data-id="${esc(
+            item.id
+          )}">
+
+          ${t(
+            "notifications.markRead"
+          )}
+
+        </button>
+
+        `
+
+        :
+
+        ""
+      }
+
+
+    </article>
+
+  `;
+
+}
+
+
+/* =====================================================
+   SUMMARY
+===================================================== */
+
+function updateSummary(items){
+
+  const unread =
+
+    items.filter(
+
+      item =>
+
+        Number(
+          item.is_read
+        )
+        ===
+        0
+
+    ).length;
+
+
+  totalCount.textContent =
+    items.length;
+
+
+  unreadCount.textContent =
+    unread;
+
+
+  navBadge.textContent =
+
+    unread > 99
+
+    ?
+
+    "99+"
+
+    :
+
+    unread;
+
+
+  navBadge.hidden =
+    unread === 0;
+
+
+  markAllBtn.disabled =
+    unread === 0;
+
+
+  if(items.length){
+
+    latestCount.textContent =
+      friendlyTime(
+        items[0].created_at
+      );
+
+  }
+
+  else{
+
+    latestCount.textContent =
+      t(
+        "notifications.noActivitySummary"
+      );
+
+  }
+
+}
+
+
+/* =====================================================
+   RENDER LIST
+===================================================== */
+
+function renderNotifications(
+  items
+){
+
+  lastItems =
+    items;
+
+
+  updateSummary(
+    items
+  );
+
+
+  list.innerHTML =
+
+    items.length
+
+    ?
+
+    items
+      .map(
+        notificationCard
+      )
+      .join("")
+
+    :
+
+    `
+
+    <div class="empty">
+
+      <div class="empty-icon">
+        🔔
+      </div>
+
+      <b>
+
+        ${t(
+          "notifications.noActivity"
+        )}
+
+      </b>
+
+      <br><br>
+
+      ${t(
+        "notifications.noActivityDesc"
+      )}
+
+    </div>
+
+    `;
+
+}
+
+
+/* =====================================================
+   LOAD
+===================================================== */
+
+async function loadNotifications(){
+
+  if(busy){
+
+    return;
+
+  }
+
+
+  try{
+
+
+    const items =
+
+      await call(
+        "/api/notifications?limit=100"
+      );
+
+
+    setError(
+      ""
+    );
+
+
+    renderNotifications(
+      items
+    );
+
+
+  }
+
+  catch(error){
+
+
+    setError(
+
+      "notifications.loadError",
+
+      {
+        message:
+          error.message
+      }
+
+    );
+
+
+  }
+
+}
+
+
+/* =====================================================
+   MARK ONE READ
+===================================================== */
+
+list.onclick =
+async event => {
+
+
+  const button =
+
+    event.target.closest(
+      ".read-btn"
+    );
+
+
+  if(
+    !button
+    ||
+    busy
+  ){
+
+    return;
+
+  }
+
+
+  busy =
+    true;
+
+
+  button.disabled =
+    true;
+
+
+  button.textContent =
+    t(
+      "notifications.updating"
+    );
+
+
+  try{
+
+
+    await call(
+
+      `/api/notifications/${button.dataset.id}/read`,
+
+      post({})
+
+    );
+
+
+    setError(
+      ""
+    );
+
+
+  }
+
+  catch(error){
+
+
+    setError(
+
+      "notifications.updateError",
+
+      {
+        message:
+          error.message
+      }
+
+    );
+
+
+  }
+
+
+  busy =
+    false;
+
+
+  loadNotifications();
+
+};
+
+
+/* =====================================================
+   MARK ALL READ
+===================================================== */
+
+markAllBtn.onclick =
+async () => {
+
+
+  if(busy){
+
+    return;
+
+  }
+
+
+  busy =
+    true;
+
+
+  markAllBtn.disabled =
+    true;
+
+
+  markAllBtn.textContent =
+    t(
+      "notifications.updating"
+    );
+
+
+  try{
+
+
+    await call(
+
+      "/api/notifications/read-all",
+
+      post({})
+
+    );
+
+
+    setError(
+      ""
+    );
+
+
+  }
+
+  catch(error){
+
+
+    setError(
+
+      "notifications.markAllError",
+
+      {
+        message:
+          error.message
+      }
+
+    );
+
+
+  }
+
+
+  busy =
+    false;
+
+
+  markAllBtn.textContent =
+    t(
+      "notifications.markAll"
+    );
+
+
+  loadNotifications();
+
+};
+
+
+/* =====================================================
+   LANGUAGE CHANGE
+===================================================== */
+
+window.addEventListener(
+  "languagechange",
+  () => {
+
+
+    refreshError();
+
+
+    if(lastItems){
+
+      renderNotifications(
+        lastItems
+      );
+
+    }
+
+
+    if(busy){
+
+      markAllBtn.textContent =
+        t(
+          "notifications.updating"
+        );
+
+    }
+
+    else{
+
+      markAllBtn.textContent =
+        t(
+          "notifications.markAll"
+        );
+
+    }
+
+
+  }
+);
+
+
+/* =====================================================
+   START
+===================================================== */
+
+latestCount.textContent =
+  t(
+    "notifications.waiting"
+  );
+
+
+loadNotifications();
+
+
+setInterval(
+
+  loadNotifications,
+
+  5000
+
+);
+
+</script>
+
+
+</body>
+
+</html> 

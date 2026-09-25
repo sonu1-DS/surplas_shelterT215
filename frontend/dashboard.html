@@ -1,85 +1,3751 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Impact dashboard - Surplus-to-Shelter</title>
-<link rel="stylesheet" href="shared.css">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+
+<meta charset="UTF-8">
+
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0"
+>
+
+<title data-i18n="dashboard.pageTitle">
+  Impact Dashboard | Surplus-to-Shelter
+</title>
+
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600;700;800&display=swap"
+>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+
 <style>
-  .hero { padding:1.5rem 0 1rem; }
-  .hero .big { font-size:clamp(4rem, 14vw, 8rem); font-weight:800; line-height:1; color:var(--leaf); }
-  .hero .big span { font-size:1.4rem; font-weight:600; color:var(--muted); margin-left:.5rem; }
-  .facts { display:flex; flex-wrap:wrap; border-top:2px solid var(--leaf); margin:1rem 0 1.5rem; }
-  .facts div { flex:1 1 150px; padding:.8rem 1rem .8rem 0; }
-  .facts b { display:block; font-size:1.7rem; }
-  .cols { display:grid; grid-template-columns:1fr 1.4fr; gap:1rem; }
-  @media (max-width:760px) { .cols { grid-template-columns:1fr; } }
-  .row { display:flex; justify-content:space-between; gap:.75rem; padding:.7rem 0; border-bottom:1px solid var(--line); }
-  .row:last-child { border-bottom:0; } .row .right { display:flex; flex-direction:column; gap:.3rem; align-items:flex-end; }
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+
+  font-family:
+    "Bricolage Grotesque",
+    system-ui,
+    sans-serif;
+
+  background:#f4f7f3;
+
+  color:#17231f;
+}
+
+
+/* =====================================================
+   NAVBAR
+===================================================== */
+
+nav{
+  min-height:70px;
+
+  display:flex;
+
+  align-items:center;
+
+  padding:0 7%;
+
+  background:#ffffff;
+
+  border-bottom:1px solid #dce4dc;
+
+  position:sticky;
+
+  top:0;
+
+  z-index:100;
+}
+
+.logo{
+  font-size:21px;
+
+  font-weight:800;
+
+  color:#14463a;
+
+  margin-right:auto;
+
+  white-space:nowrap;
+}
+
+nav a{
+  margin-left:25px;
+
+  text-decoration:none;
+
+  color:#34473f;
+
+  font-weight:600;
+
+  white-space:nowrap;
+}
+
+nav a:hover{
+  color:#2f7d5b;
+}
+
+nav a.active{
+  color:#14463a;
+
+  border-bottom:2px solid #e9a319;
+
+  padding-bottom:5px;
+}
+
+
+/* =====================================================
+   LANGUAGE
+===================================================== */
+
+.language-control{
+  display:flex;
+
+  align-items:center;
+
+  gap:7px;
+
+  margin-left:22px;
+}
+
+.language-icon{
+  font-size:17px;
+}
+
+.language-selector{
+  width:auto;
+
+  min-width:105px;
+
+  padding:8px 10px;
+
+  border:1px solid #cbd8cf;
+
+  border-radius:9px;
+
+  background:#ffffff;
+
+  color:#14463a;
+
+  font-family:inherit;
+
+  font-size:14px;
+
+  font-weight:700;
+
+  cursor:pointer;
+
+  outline:none;
+}
+
+.language-selector:focus{
+  border-color:#2f7d5b;
+
+  box-shadow:
+    0 0 0 3px rgba(47,125,91,.10);
+}
+
+
+/* =====================================================
+   PAGE
+===================================================== */
+
+.page{
+  max-width:1250px;
+
+  margin:auto;
+
+  padding:50px 6%;
+}
+
+
+/* =====================================================
+   HEADER
+===================================================== */
+
+.header{
+  display:flex;
+
+  align-items:flex-end;
+
+  justify-content:space-between;
+
+  gap:25px;
+
+  margin-bottom:30px;
+}
+
+.eyebrow{
+  display:inline-block;
+
+  padding:7px 13px;
+
+  background:#dff1e7;
+
+  color:#17603a;
+
+  border-radius:30px;
+
+  font-weight:700;
+
+  margin-bottom:13px;
+}
+
+.header h1{
+  margin:0 0 9px;
+
+  font-size:46px;
+
+  color:#14463a;
+}
+
+.header p{
+  margin:0;
+
+  color:#68766f;
+
+  font-size:17px;
+
+  max-width:700px;
+
+  line-height:1.55;
+}
+
+.header-actions{
+  display:flex;
+
+  flex-direction:column;
+
+  gap:10px;
+
+  align-items:stretch;
+}
+
+.live-box{
+  background:#ffffff;
+
+  border:1px solid #dce4dc;
+
+  border-radius:12px;
+
+  padding:12px 16px;
+
+  min-width:190px;
+}
+
+.live-label{
+  display:flex;
+
+  align-items:center;
+
+  gap:7px;
+
+  color:#17603a;
+
+  font-weight:700;
+
+  font-size:13px;
+}
+
+.live-dot{
+  width:8px;
+
+  height:8px;
+
+  border-radius:50%;
+
+  background:#2e9b57;
+}
+
+#lastUpdated{
+  display:block;
+
+  margin-top:5px;
+
+  font-size:12px;
+
+  color:#7a867f;
+}
+
+
+/* =====================================================
+   RESET BUTTON
+===================================================== */
+
+.reset-btn{
+  width:100%;
+
+  border:1px solid #d26352;
+
+  background:#fff7f5;
+
+  color:#a53a2b;
+
+  padding:11px 14px;
+
+  border-radius:10px;
+
+  font-family:inherit;
+
+  font-size:13px;
+
+  font-weight:800;
+
+  cursor:pointer;
+
+  transition:.2s;
+}
+
+.reset-btn:hover{
+  background:#fff0ed;
+
+  border-color:#bd4a38;
+}
+
+.reset-btn:disabled{
+  opacity:.55;
+
+  cursor:not-allowed;
+}
+
+
+/* =====================================================
+   METRICS
+===================================================== */
+
+.metrics{
+  display:grid;
+
+  grid-template-columns:
+    repeat(4,1fr);
+
+  gap:16px;
+
+  margin-bottom:25px;
+}
+
+.metric{
+  background:#ffffff;
+
+  border:1px solid #dce4dc;
+
+  border-radius:16px;
+
+  padding:20px;
+
+  min-height:145px;
+
+  box-shadow:
+    0 8px 22px rgba(20,70,58,.035);
+
+  transition:.2s;
+}
+
+.metric:hover{
+  transform:translateY(-2px);
+
+  box-shadow:
+    0 12px 28px rgba(20,70,58,.07);
+}
+
+.metric-top{
+  display:flex;
+
+  align-items:center;
+
+  justify-content:space-between;
+
+  gap:10px;
+}
+
+.metric-icon{
+  width:42px;
+
+  height:42px;
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:center;
+
+  border-radius:11px;
+
+  background:#eaf5ee;
+
+  font-size:20px;
+}
+
+.metric-label{
+  margin-top:17px;
+
+  font-size:13px;
+
+  color:#6b7871;
+
+  font-weight:600;
+}
+
+.metric-value{
+  display:block;
+
+  margin-top:3px;
+
+  font-size:31px;
+
+  line-height:1.1;
+
+  color:#14463a;
+
+  font-weight:800;
+}
+
+.metric-note{
+  margin-top:7px;
+
+  font-size:12px;
+
+  color:#8a948e;
+
+  line-height:1.4;
+}
+
+.metric.highlight{
+  background:#14463a;
+
+  border-color:#14463a;
+}
+
+.metric.highlight .metric-icon{
+  background:rgba(255,255,255,.12);
+}
+
+.metric.highlight .metric-label,
+.metric.highlight .metric-note{
+  color:#cfe0d8;
+}
+
+.metric.highlight .metric-value{
+  color:#ffffff;
+}
+
+
+/* =====================================================
+   ANALYTICS
+===================================================== */
+
+.analytics-grid{
+  display:grid;
+
+  grid-template-columns:
+    1.25fr .75fr;
+
+  gap:20px;
+
+  margin-bottom:22px;
+}
+
+.panel{
+  background:#ffffff;
+
+  border:1px solid #dce4dc;
+
+  border-radius:18px;
+
+  padding:24px;
+
+  box-shadow:
+    0 10px 30px rgba(20,70,58,.04);
+}
+
+.panel-head{
+  display:flex;
+
+  justify-content:space-between;
+
+  align-items:center;
+
+  gap:15px;
+
+  margin-bottom:20px;
+}
+
+.panel-head h2{
+  margin:0;
+
+  color:#14463a;
+
+  font-size:22px;
+}
+
+.panel-head span{
+  font-size:12px;
+
+  color:#77837c;
+}
+
+.chart-wrap{
+  position:relative;
+
+  height:310px;
+}
+
+
+/* =====================================================
+   OPERATIONAL HEALTH
+===================================================== */
+
+.health-item{
+  padding:17px 0;
+
+  border-bottom:1px solid #edf0ed;
+}
+
+.health-item:first-child{
+  padding-top:2px;
+}
+
+.health-item:last-child{
+  border-bottom:none;
+
+  padding-bottom:0;
+}
+
+.health-top{
+  display:flex;
+
+  justify-content:space-between;
+
+  align-items:center;
+
+  gap:10px;
+
+  margin-bottom:8px;
+}
+
+.health-name{
+  font-weight:700;
+
+  color:#34473f;
+}
+
+.health-value{
+  font-weight:800;
+
+  color:#14463a;
+}
+
+.progress{
+  height:8px;
+
+  width:100%;
+
+  background:#edf2ee;
+
+  border-radius:20px;
+
+  overflow:hidden;
+}
+
+.progress-fill{
+  height:100%;
+
+  border-radius:20px;
+
+  background:#2f7d5b;
+}
+
+.health-desc{
+  margin-top:7px;
+
+  font-size:12px;
+
+  color:#7b8780;
+
+  line-height:1.4;
+}
+
+
+/* =====================================================
+   RECENT ACTIVITY
+===================================================== */
+
+.activity-list{
+  display:flex;
+
+  flex-direction:column;
+
+  gap:10px;
+}
+
+.activity{
+  display:grid;
+
+  grid-template-columns:
+    44px 1fr auto;
+
+  gap:13px;
+
+  align-items:flex-start;
+
+  padding:14px;
+
+  border:1px solid #e1e7e2;
+
+  border-radius:12px;
+
+  background:#fcfdfc;
+}
+
+.activity-icon{
+  width:42px;
+
+  height:42px;
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:center;
+
+  border-radius:10px;
+
+  background:#eaf5ee;
+
+  font-size:19px;
+}
+
+.activity h3{
+  margin:0;
+
+  font-size:15px;
+
+  color:#14463a;
+}
+
+.activity p{
+  margin:4px 0 0;
+
+  color:#66746c;
+
+  font-size:13px;
+
+  line-height:1.45;
+}
+
+.activity-time{
+  color:#8d9791;
+
+  font-size:11px;
+
+  white-space:nowrap;
+}
+
+.empty{
+  text-align:center;
+
+  padding:40px 20px;
+
+  border:1px dashed #cad6ce;
+
+  border-radius:13px;
+
+  color:#748079;
+}
+
+
+/* =====================================================
+   NOTE / ERROR
+===================================================== */
+
+.data-note{
+  margin-top:18px;
+
+  padding:13px 15px;
+
+  border-radius:10px;
+
+  background:#f7faf8;
+
+  color:#728078;
+
+  font-size:12px;
+
+  line-height:1.5;
+}
+
+.error{
+  display:none;
+
+  padding:14px;
+
+  margin-bottom:20px;
+
+  background:#fff0ed;
+
+  color:#9f3425;
+
+  border:1px solid #e9b9b0;
+
+  border-radius:11px;
+}
+
+.success-box{
+  display:none;
+
+  padding:14px;
+
+  margin-bottom:20px;
+
+  background:#eaf5ee;
+
+  color:#17603a;
+
+  border:1px solid #bdd8c7;
+
+  border-radius:11px;
+}
+
+
+/* =====================================================
+   MODAL
+===================================================== */
+
+.modal-backdrop{
+  position:fixed;
+
+  inset:0;
+
+  background:rgba(15,35,28,.48);
+
+  display:none;
+
+  align-items:center;
+
+  justify-content:center;
+
+  z-index:1000;
+
+  padding:20px;
+}
+
+.modal-backdrop.show{
+  display:flex;
+}
+
+.modal{
+  width:100%;
+
+  max-width:470px;
+
+  background:#ffffff;
+
+  border-radius:18px;
+
+  padding:24px;
+
+  box-shadow:
+    0 20px 60px rgba(0,0,0,.18);
+}
+
+.modal-icon{
+  width:48px;
+
+  height:48px;
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:center;
+
+  background:#fff0ed;
+
+  border-radius:12px;
+
+  font-size:22px;
+
+  margin-bottom:14px;
+}
+
+.modal h2{
+  margin:0 0 8px;
+
+  color:#14463a;
+}
+
+.modal p{
+  margin:0;
+
+  color:#64726a;
+
+  line-height:1.6;
+}
+
+.warning-box{
+  margin-top:16px;
+
+  background:#fff8e8;
+
+  border:1px solid #efdba8;
+
+  border-radius:10px;
+
+  padding:12px;
+
+  color:#75520b;
+
+  font-size:13px;
+
+  line-height:1.5;
+}
+
+.modal-actions{
+  display:flex;
+
+  justify-content:flex-end;
+
+  gap:10px;
+
+  margin-top:22px;
+}
+
+.cancel-btn,
+.confirm-reset-btn{
+  border-radius:9px;
+
+  padding:11px 16px;
+
+  font-family:inherit;
+
+  font-size:14px;
+
+  font-weight:800;
+
+  cursor:pointer;
+}
+
+.cancel-btn{
+  background:#ffffff;
+
+  border:1px solid #cfd8d2;
+
+  color:#34473f;
+}
+
+.confirm-reset-btn{
+  background:#b84332;
+
+  border:none;
+
+  color:#ffffff;
+}
+
+.confirm-reset-btn:hover{
+  background:#9e3426;
+}
+
+.confirm-reset-btn:disabled{
+  opacity:.55;
+
+  cursor:not-allowed;
+}
+
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media(max-width:1000px){
+
+  nav{
+    padding-left:4%;
+    padding-right:4%;
+  }
+
+  nav a{
+    margin-left:14px;
+  }
+
+  .language-control{
+    margin-left:14px;
+  }
+
+  .metrics{
+    grid-template-columns:
+      repeat(2,1fr);
+  }
+
+  .analytics-grid{
+    grid-template-columns:1fr;
+  }
+
+}
+
+@media(max-width:760px){
+
+  nav a{
+    display:none;
+  }
+
+  .language-control{
+    margin-left:auto;
+  }
+
+  .header{
+    flex-direction:column;
+
+    align-items:flex-start;
+  }
+
+  .header h1{
+    font-size:38px;
+  }
+
+  .header-actions{
+    width:100%;
+  }
+
+  .live-box{
+    width:100%;
+  }
+
+}
+
+@media(max-width:520px){
+
+  .page{
+    padding:35px 18px;
+  }
+
+  .metrics{
+    grid-template-columns:1fr;
+  }
+
+  .activity{
+    grid-template-columns:
+      42px 1fr;
+  }
+
+  .activity-time{
+    grid-column:2;
+  }
+
+  .modal-actions{
+    flex-direction:column-reverse;
+  }
+
+  .cancel-btn,
+  .confirm-reset-btn{
+    width:100%;
+  }
+
+  .logo{
+    font-size:17px;
+  }
+
+  .language-selector{
+    min-width:90px;
+  }
+
+}
+
 </style>
+
 </head>
+
+
 <body>
-<nav><b>Surplus-to-Shelter</b><a href="donor.html">Donate</a><a href="dashboard.html" class="active">Dashboard</a><a href="map.html">Live map</a></nav>
-<main>
-  <section class="hero">
-    <h1>Food rescued so far</h1>
-    <div class="big"><span id="meals">0</span><span>meals</span></div>
-  </section>
-  <section class="facts">
-    <div><b id="kg">0</b>kg of food diverted from landfill</div>
-    <div><b id="co2">0</b>kg CO2e avoided</div>
-    <div><b id="active">0</b>donations in progress</div>
-    <div><b id="orgs">0</b>partner shelters</div>
-  </section>
-  <section class="cols">
-    <div class="panel"><h2>Donations by status</h2><canvas id="statusChart" height="260"></canvas></div>
-    <div class="panel"><h2>Latest donations</h2><div id="recent"></div></div>
-  </section>
-  <p><small id="assumptions"></small></p>
-  <button id="testToast">Test notification</button>
+
+
+<!-- =====================================================
+     NAVBAR
+===================================================== -->
+
+<nav>
+
+  <div class="logo">
+    🍲 Surplus-to-Shelter
+  </div>
+
+  <a
+    href="index.html"
+    data-i18n="nav.home">
+    Home
+  </a>
+
+  <a
+    href="donor.html"
+    data-i18n="nav.donate">
+    Donate
+  </a>
+
+  <a
+    href="shelter.html"
+    data-i18n="nav.shelter">
+    Shelter
+  </a>
+
+  <a
+    href="driver.html"
+    data-i18n="nav.driver">
+    Driver
+  </a>
+
+  <a
+    href="map.html"
+    data-i18n="nav.map">
+    Live Map
+  </a>
+
+  <a
+    href="dashboard.html"
+    class="active"
+    data-i18n="nav.impact">
+    Impact
+  </a>
+
+
+  <div class="language-control">
+
+    <span class="language-icon">
+      🌐
+    </span>
+
+    <select
+      class="language-selector"
+      aria-label="Language">
+
+      <option value="en">
+        English
+      </option>
+
+      <option value="hi">
+        हिन्दी
+      </option>
+
+    </select>
+
+  </div>
+
+</nav>
+
+
+<main class="page">
+
+
+<!-- =====================================================
+     HEADER
+===================================================== -->
+
+<section class="header">
+
+  <div>
+
+    <div
+      class="eyebrow"
+      data-i18n="dashboard.eyebrow">
+
+      📊 Live Impact Analytics
+
+    </div>
+
+
+    <h1 data-i18n="dashboard.title">
+
+      Rescue impact dashboard
+
+    </h1>
+
+
+    <p data-i18n="dashboard.description">
+
+      Track rescued food, successful deliveries,
+      active missions, automatic recovery and the
+      operational performance of the
+      Surplus-to-Shelter network.
+
+    </p>
+
+  </div>
+
+
+  <div class="header-actions">
+
+
+    <div class="live-box">
+
+      <div class="live-label">
+
+        <span class="live-dot"></span>
+
+        <span data-i18n="dashboard.liveData">
+          Live data
+        </span>
+
+      </div>
+
+      <span id="lastUpdated">
+        Updating...
+      </span>
+
+    </div>
+
+
+    <button
+      id="resetDemoBtn"
+      class="reset-btn"
+      data-i18n="dashboard.resetDemo">
+
+      🧹 Reset Demo Data
+
+    </button>
+
+
+  </div>
+
+</section>
+
+
+<div
+  id="successBox"
+  class="success-box">
+</div>
+
+
+<div
+  id="errorBox"
+  class="error">
+</div>
+
+
+<!-- =====================================================
+     METRICS
+===================================================== -->
+
+<section class="metrics">
+
+
+<div class="metric highlight">
+
+  <div class="metric-top">
+
+    <div class="metric-icon">
+      🍽
+    </div>
+
+  </div>
+
+  <div
+    class="metric-label"
+    data-i18n="dashboard.mealsSaved">
+
+    Meals Saved
+
+  </div>
+
+  <span
+    class="metric-value"
+    id="mealsSaved">
+
+    0
+
+  </span>
+
+  <div
+    class="metric-note"
+    data-i18n="dashboard.mealsSavedNote">
+
+    Portions successfully delivered
+
+  </div>
+
+</div>
+
+
+<div class="metric">
+
+  <div class="metric-top">
+
+    <div class="metric-icon">
+      ⚖️
+    </div>
+
+  </div>
+
+  <div
+    class="metric-label"
+    data-i18n="dashboard.foodRescued">
+
+    Food Rescued
+
+  </div>
+
+  <span
+    class="metric-value"
+    id="foodRescued">
+
+    0 kg
+
+  </span>
+
+  <div
+    class="metric-note"
+    data-i18n="dashboard.foodRescuedNote">
+
+    Estimated at 0.4 kg per portion
+
+  </div>
+
+</div>
+
+
+<div class="metric">
+
+  <div class="metric-top">
+
+    <div class="metric-icon">
+      🌱
+    </div>
+
+  </div>
+
+  <div
+    class="metric-label"
+    data-i18n="dashboard.co2">
+
+    CO₂e Avoided
+
+  </div>
+
+  <span
+    class="metric-value"
+    id="co2Saved">
+
+    0 kg
+
+  </span>
+
+  <div
+    class="metric-note"
+    data-i18n="dashboard.co2Note">
+
+    Estimated food-waste impact
+
+  </div>
+
+</div>
+
+
+<div class="metric">
+
+  <div class="metric-top">
+
+    <div class="metric-icon">
+      🏠
+    </div>
+
+  </div>
+
+  <div
+    class="metric-label"
+    data-i18n="dashboard.partnerShelters">
+
+    Partner Shelters
+
+  </div>
+
+  <span
+    class="metric-value"
+    id="partnerShelters">
+
+    0
+
+  </span>
+
+  <div
+    class="metric-note"
+    data-i18n="dashboard.partnerSheltersNote">
+
+    Available rescue destinations
+
+  </div>
+
+</div>
+
+
+<div class="metric">
+
+  <div class="metric-top">
+
+    <div class="metric-icon">
+      ✅
+    </div>
+
+  </div>
+
+  <div
+    class="metric-label"
+    data-i18n="dashboard.deliveredRescues">
+
+    Delivered Rescues
+
+  </div>
+
+  <span
+    class="metric-value"
+    id="deliveredRescues">
+
+    0
+
+  </span>
+
+  <div
+    class="metric-note"
+    data-i18n="dashboard.deliveredNote">
+
+    Completed donor-to-shelter missions
+
+  </div>
+
+</div>
+
+
+<div class="metric">
+
+  <div class="metric-top">
+
+    <div class="metric-icon">
+      🚗
+    </div>
+
+  </div>
+
+  <div
+    class="metric-label"
+    data-i18n="dashboard.activeRescues">
+
+    Active Rescues
+
+  </div>
+
+  <span
+    class="metric-value"
+    id="activeRescues">
+
+    0
+
+  </span>
+
+  <div
+    class="metric-note"
+    data-i18n="dashboard.activeRescuesNote">
+
+    Matched, accepted or in transit
+
+  </div>
+
+</div>
+
+
+<div class="metric">
+
+  <div class="metric-top">
+
+    <div class="metric-icon">
+      🔄
+    </div>
+
+  </div>
+
+  <div
+    class="metric-label"
+    data-i18n="dashboard.autoRematches">
+
+    Auto Re-Matches
+
+  </div>
+
+  <span
+    class="metric-value"
+    id="autoRematches">
+
+    0
+
+  </span>
+
+  <div
+    class="metric-note"
+    data-i18n="dashboard.autoRematchesNote">
+
+    Successful automatic shelter reassignments
+
+  </div>
+
+</div>
+
+
+<div class="metric">
+
+  <div class="metric-top">
+
+    <div class="metric-icon">
+      🎯
+    </div>
+
+  </div>
+
+  <div
+    class="metric-label"
+    data-i18n="dashboard.successRate">
+
+    Delivery Success Rate
+
+  </div>
+
+  <span
+    class="metric-value"
+    id="successRate">
+
+    0%
+
+  </span>
+
+  <div
+    class="metric-note"
+    data-i18n="dashboard.successRateNote">
+
+    Delivered vs terminal rescue outcomes
+
+  </div>
+
+</div>
+
+
+</section>
+
+
+<!-- =====================================================
+     ANALYTICS
+===================================================== -->
+
+<section class="analytics-grid">
+
+
+<div class="panel">
+
+  <div class="panel-head">
+
+    <h2 data-i18n="dashboard.statusOverview">
+      Rescue status overview
+    </h2>
+
+    <span data-i18n="dashboard.currentRecords">
+      Current donation records
+    </span>
+
+  </div>
+
+
+  <div class="chart-wrap">
+
+    <canvas id="statusChart"></canvas>
+
+  </div>
+
+</div>
+
+
+<div class="panel">
+
+
+  <div class="panel-head">
+
+    <h2 data-i18n="dashboard.operationalHealth">
+      Operational health
+    </h2>
+
+    <span data-i18n="common.live">
+      Live
+    </span>
+
+  </div>
+
+
+  <div class="health-item">
+
+    <div class="health-top">
+
+      <span
+        class="health-name"
+        data-i18n="dashboard.healthSuccess">
+
+        Delivery success
+
+      </span>
+
+      <span
+        class="health-value"
+        id="healthSuccess">
+
+        0%
+
+      </span>
+
+    </div>
+
+
+    <div class="progress">
+
+      <div
+        class="progress-fill"
+        id="successBar"
+        style="width:0%">
+      </div>
+
+    </div>
+
+
+    <div
+      class="health-desc"
+      data-i18n="dashboard.healthSuccessDesc">
+
+      Percentage of completed rescue outcomes
+      that ended in successful delivery.
+
+    </div>
+
+  </div>
+
+
+  <div class="health-item">
+
+    <div class="health-top">
+
+      <span
+        class="health-name"
+        data-i18n="dashboard.activeQueue">
+
+        Active rescue queue
+
+      </span>
+
+      <span
+        class="health-value"
+        id="healthActive">
+
+        0
+
+      </span>
+
+    </div>
+
+    <div
+      class="health-desc"
+      data-i18n="dashboard.activeQueueDesc">
+
+      Donations currently matched,
+      accepted or being transported.
+
+    </div>
+
+  </div>
+
+
+  <div class="health-item">
+
+    <div class="health-top">
+
+      <span
+        class="health-name"
+        data-i18n="dashboard.recoveryEvents">
+
+        Auto recovery events
+
+      </span>
+
+      <span
+        class="health-value"
+        id="healthRematches">
+
+        0
+
+      </span>
+
+    </div>
+
+    <div
+      class="health-desc"
+      data-i18n="dashboard.recoveryEventsDesc">
+
+      Successful automatic reassignment events
+      reconstructed from donation rejection history.
+
+    </div>
+
+  </div>
+
+
+  <div class="health-item">
+
+    <div class="health-top">
+
+      <span
+        class="health-name"
+        data-i18n="dashboard.failedExpired">
+
+        Failed / expired
+
+      </span>
+
+      <span
+        class="health-value"
+        id="healthFailed">
+
+        0
+
+      </span>
+
+    </div>
+
+    <div
+      class="health-desc"
+      data-i18n="dashboard.failedExpiredDesc">
+
+      Terminal donations that were rejected
+      without another match or expired.
+
+    </div>
+
+  </div>
+
+
+  <div class="data-note">
+
+    <b data-i18n="dashboard.successFormulaTitle">
+      Success Rate:
+    </b>
+
+    <span data-i18n="dashboard.successFormula">
+      Delivered ÷ (Delivered + Rejected + Expired).
+    </span>
+
+    <br><br>
+
+    <b data-i18n="dashboard.rematchFormulaTitle">
+      Auto Re-Matches:
+    </b>
+
+    <span data-i18n="dashboard.rematchFormula">
+      calculated from stored shelter-rejection history.
+    </span>
+
+  </div>
+
+
+</div>
+
+
+</section>
+
+
+<!-- =====================================================
+     ACTIVITY
+===================================================== -->
+
+<section class="panel">
+
+
+  <div class="panel-head">
+
+    <h2 data-i18n="dashboard.recentActivity">
+
+      Recent rescue activity
+
+    </h2>
+
+    <span data-i18n="dashboard.notificationStream">
+
+      Notification stream
+
+    </span>
+
+  </div>
+
+
+  <div
+    id="activityList"
+    class="activity-list">
+
+    <div
+      class="empty"
+      data-i18n="dashboard.loadingActivity">
+
+      Loading rescue activity...
+
+    </div>
+
+  </div>
+
+
+</section>
+
+
 </main>
-<script src="config.js"></script><script src="fake-data.js"></script><script src="shared.js"></script>
+
+
+<!-- =====================================================
+     RESET MODAL
+===================================================== -->
+
+<div
+  id="resetModal"
+  class="modal-backdrop">
+
+
+  <div class="modal">
+
+
+    <div class="modal-icon">
+      🧹
+    </div>
+
+
+    <h2 data-i18n="dashboard.resetTitle">
+
+      Reset demo data?
+
+    </h2>
+
+
+    <p data-i18n="dashboard.resetDescription">
+
+      This will remove all test donations
+      and rescue notifications so you can
+      start a clean judging demo.
+
+    </p>
+
+
+    <div class="warning-box">
+
+      <span data-i18n="dashboard.resetShelters">
+        ✅ The 8 partner shelters will remain.
+      </span>
+
+      <br>
+
+      <span data-i18n="dashboard.resetConfig">
+        ✅ Smart Match configuration stays unchanged.
+      </span>
+
+      <br>
+
+      <span data-i18n="dashboard.resetCode">
+        ✅ Website code is not affected.
+      </span>
+
+      <br>
+
+      <span data-i18n="dashboard.resetDelete">
+        ❌ All current donation history and notifications will be deleted.
+      </span>
+
+    </div>
+
+
+    <div class="modal-actions">
+
+
+      <button
+        id="cancelResetBtn"
+        class="cancel-btn"
+        data-i18n="common.cancel">
+
+        Cancel
+
+      </button>
+
+
+      <button
+        id="confirmResetBtn"
+        class="confirm-reset-btn"
+        data-i18n="dashboard.resetDemo">
+
+        Reset Demo Data
+
+      </button>
+
+
+    </div>
+
+
+  </div>
+
+
+</div>
+
+
+<script src="api.js"></script>
+<script src="i18n.js"></script>
+
+
 <script>
-const $ = id => document.getElementById(id);
-let chart;
-$("assumptions").textContent = `Estimates: 1 portion = 1 meal = about ${KG_PER_PORTION} kg of food; about ${CO2E_PER_KG} kg CO2e avoided per kg of food rescued.`;
-$("testToast").onclick = () => showToast("SMS sent to Hope Shelter: 25 portions available for pickup");
 
-async function loadDashboard() {
-  try {
-    const [stats, donations] = await Promise.all([getStats(), getDonations()]);
-    $("meals").textContent = stats.total_meals_saved;
-    $("kg").textContent = Math.round(stats.total_meals_saved * KG_PER_PORTION);
-    $("co2").textContent = Math.round(stats.co2_saved_kg);
-    $("active").textContent = stats.active_donations;
-    $("orgs").textContent = stats.total_orgs;
+/* =====================================================
+   DASHBOARD TRANSLATIONS
+===================================================== */
 
-    const counts = {};
-    donations.forEach(d => counts[d.status] = (counts[d.status] || 0) + 1);
-    const keys = Object.keys(counts);
-    if (chart) chart.destroy();
-    chart = new Chart($("statusChart"), {
-      type: "doughnut",
-      data: { labels: keys.map(k => (STATUS_INFO[k] || { label: k }).label),
-              datasets: [{ data: keys.map(k => counts[k]), backgroundColor: keys.map(k => (STATUS_INFO[k] || {}).color || "#8f9b94") }] },
-      options: { plugins: { legend: { position: "bottom" } } }
+Object.assign(
+  translations.en,
+  {
+
+    "dashboard.pageTitle":
+      "Impact Dashboard | Surplus-to-Shelter",
+
+    "dashboard.eyebrow":
+      "📊 Live Impact Analytics",
+
+    "dashboard.title":
+      "Rescue impact dashboard",
+
+    "dashboard.description":
+      "Track rescued food, successful deliveries, active missions, automatic recovery and the operational performance of the Surplus-to-Shelter network.",
+
+    "dashboard.liveData":
+      "Live data",
+
+    "dashboard.resetDemo":
+      "🧹 Reset Demo Data",
+
+    "dashboard.mealsSaved":
+      "Meals Saved",
+
+    "dashboard.mealsSavedNote":
+      "Portions successfully delivered",
+
+    "dashboard.foodRescued":
+      "Food Rescued",
+
+    "dashboard.foodRescuedNote":
+      "Estimated at 0.4 kg per portion",
+
+    "dashboard.co2":
+      "CO₂e Avoided",
+
+    "dashboard.co2Note":
+      "Estimated food-waste impact",
+
+    "dashboard.partnerShelters":
+      "Partner Shelters",
+
+    "dashboard.partnerSheltersNote":
+      "Available rescue destinations",
+
+    "dashboard.deliveredRescues":
+      "Delivered Rescues",
+
+    "dashboard.deliveredNote":
+      "Completed donor-to-shelter missions",
+
+    "dashboard.activeRescues":
+      "Active Rescues",
+
+    "dashboard.activeRescuesNote":
+      "Matched, accepted or in transit",
+
+    "dashboard.autoRematches":
+      "Auto Re-Matches",
+
+    "dashboard.autoRematchesNote":
+      "Successful automatic shelter reassignments",
+
+    "dashboard.successRate":
+      "Delivery Success Rate",
+
+    "dashboard.successRateNote":
+      "Delivered vs terminal rescue outcomes",
+
+    "dashboard.statusOverview":
+      "Rescue status overview",
+
+    "dashboard.currentRecords":
+      "Current donation records",
+
+    "dashboard.operationalHealth":
+      "Operational health",
+
+    "dashboard.healthSuccess":
+      "Delivery success",
+
+    "dashboard.healthSuccessDesc":
+      "Percentage of completed rescue outcomes that ended in successful delivery.",
+
+    "dashboard.activeQueue":
+      "Active rescue queue",
+
+    "dashboard.activeQueueDesc":
+      "Donations currently matched, accepted or being transported.",
+
+    "dashboard.recoveryEvents":
+      "Auto recovery events",
+
+    "dashboard.recoveryEventsDesc":
+      "Successful automatic reassignment events reconstructed from donation rejection history.",
+
+    "dashboard.failedExpired":
+      "Failed / expired",
+
+    "dashboard.failedExpiredDesc":
+      "Terminal donations that were rejected without another match or expired.",
+
+    "dashboard.successFormulaTitle":
+      "Success Rate:",
+
+    "dashboard.successFormula":
+      "Delivered ÷ (Delivered + Rejected + Expired).",
+
+    "dashboard.rematchFormulaTitle":
+      "Auto Re-Matches:",
+
+    "dashboard.rematchFormula":
+      "calculated from stored shelter-rejection history.",
+
+    "dashboard.recentActivity":
+      "Recent rescue activity",
+
+    "dashboard.notificationStream":
+      "Notification stream",
+
+    "dashboard.loadingActivity":
+      "Loading rescue activity...",
+
+    "dashboard.noActivity":
+      "No rescue activity yet.",
+
+    "dashboard.noActivityDesc":
+      "Post a fresh donation to start the clean demo.",
+
+    "dashboard.updated":
+      "Updated {time}",
+
+    "dashboard.updating":
+      "Updating...",
+
+    "dashboard.refreshError":
+      "Could not refresh dashboard: {message}",
+
+    "dashboard.chartDelivered":
+      "Delivered",
+
+    "dashboard.chartMatched":
+      "Matched",
+
+    "dashboard.chartAccepted":
+      "Accepted",
+
+    "dashboard.chartPickedUp":
+      "Picked Up",
+
+    "dashboard.chartPosted":
+      "Posted",
+
+    "dashboard.chartFailed":
+      "Failed",
+
+    "dashboard.justNow":
+      "Just now",
+
+    "dashboard.minutesAgo":
+      "{count} min ago",
+
+    "dashboard.hoursAgo":
+      "{count} hr ago",
+
+    "dashboard.daysAgo":
+      "{count} days ago",
+
+    "dashboard.dayAgo":
+      "1 day ago",
+
+    "dashboard.resetTitle":
+      "Reset demo data?",
+
+    "dashboard.resetDescription":
+      "This will remove all test donations and rescue notifications so you can start a clean judging demo.",
+
+    "dashboard.resetShelters":
+      "✅ The 8 partner shelters will remain.",
+
+    "dashboard.resetConfig":
+      "✅ Smart Match configuration stays unchanged.",
+
+    "dashboard.resetCode":
+      "✅ Website code is not affected.",
+
+    "dashboard.resetDelete":
+      "❌ All current donation history and notifications will be deleted.",
+
+    "dashboard.resetting":
+      "Resetting...",
+
+    "dashboard.resetSuccess":
+      "Demo reset complete ✓ {donations} donations and {notifications} notifications removed. {shelters} shelters preserved.",
+
+    "dashboard.resetFailed":
+      "Demo reset failed: {message}",
+
+    "dashboard.kg":
+      "{value} kg"
+
+  }
+);
+
+
+Object.assign(
+  translations.hi,
+  {
+
+    "dashboard.pageTitle":
+      "प्रभाव डैशबोर्ड | Surplus-to-Shelter",
+
+    "dashboard.eyebrow":
+      "📊 लाइव प्रभाव विश्लेषण",
+
+    "dashboard.title":
+      "भोजन बचाव प्रभाव डैशबोर्ड",
+
+    "dashboard.description":
+      "बचाए गए भोजन, सफल डिलीवरी, सक्रिय बचाव कार्य, स्वचालित पुनः मिलान और Surplus-to-Shelter नेटवर्क के प्रदर्शन को ट्रैक करें।",
+
+    "dashboard.liveData":
+      "लाइव डेटा",
+
+    "dashboard.resetDemo":
+      "🧹 डेमो डेटा रीसेट करें",
+
+    "dashboard.mealsSaved":
+      "बचाए गए भोजन",
+
+    "dashboard.mealsSavedNote":
+      "सफलतापूर्वक पहुँचाए गए भोजन के हिस्से",
+
+    "dashboard.foodRescued":
+      "बचाया गया भोजन",
+
+    "dashboard.foodRescuedNote":
+      "प्रति भोजन लगभग 0.4 किग्रा अनुमान",
+
+    "dashboard.co2":
+      "CO₂e बचत",
+
+    "dashboard.co2Note":
+      "भोजन बर्बादी से बचाए गए अनुमानित उत्सर्जन",
+
+    "dashboard.partnerShelters":
+      "साझेदार आश्रय केंद्र",
+
+    "dashboard.partnerSheltersNote":
+      "उपलब्ध भोजन बचाव गंतव्य",
+
+    "dashboard.deliveredRescues":
+      "पूरी हुई डिलीवरी",
+
+    "dashboard.deliveredNote":
+      "दाता से आश्रय केंद्र तक पूरी हुई बचाव यात्राएँ",
+
+    "dashboard.activeRescues":
+      "सक्रिय बचाव",
+
+    "dashboard.activeRescuesNote":
+      "मैच, स्वीकार या रास्ते में मौजूद बचाव",
+
+    "dashboard.autoRematches":
+      "स्वचालित पुनः मैच",
+
+    "dashboard.autoRematchesNote":
+      "सफल स्वचालित आश्रय पुनः आवंटन",
+
+    "dashboard.successRate":
+      "डिलीवरी सफलता दर",
+
+    "dashboard.successRateNote":
+      "अंतिम बचाव परिणामों की तुलना में सफल डिलीवरी",
+
+    "dashboard.statusOverview":
+      "बचाव स्थिति का सारांश",
+
+    "dashboard.currentRecords":
+      "वर्तमान भोजन दान रिकॉर्ड",
+
+    "dashboard.operationalHealth":
+      "संचालन स्थिति",
+
+    "dashboard.healthSuccess":
+      "डिलीवरी सफलता",
+
+    "dashboard.healthSuccessDesc":
+      "पूर्ण हुए बचाव परिणामों में से सफल डिलीवरी का प्रतिशत।",
+
+    "dashboard.activeQueue":
+      "सक्रिय बचाव कतार",
+
+    "dashboard.activeQueueDesc":
+      "वर्तमान में मैच, स्वीकार या परिवहन में मौजूद भोजन दान।",
+
+    "dashboard.recoveryEvents":
+      "स्वचालित पुनर्प्राप्ति घटनाएँ",
+
+    "dashboard.recoveryEventsDesc":
+      "आश्रय अस्वीकृति इतिहास से निकाली गई सफल स्वचालित पुनः आवंटन घटनाएँ।",
+
+    "dashboard.failedExpired":
+      "असफल / समय समाप्त",
+
+    "dashboard.failedExpiredDesc":
+      "ऐसे अंतिम भोजन दान जो बिना दूसरे मैच के अस्वीकार हुए या जिनका समय समाप्त हो गया।",
+
+    "dashboard.successFormulaTitle":
+      "सफलता दर:",
+
+    "dashboard.successFormula":
+      "डिलीवरी ÷ (डिलीवरी + अस्वीकृत + समय समाप्त)।",
+
+    "dashboard.rematchFormulaTitle":
+      "स्वचालित पुनः मैच:",
+
+    "dashboard.rematchFormula":
+      "संग्रहीत आश्रय अस्वीकृति इतिहास से गणना की जाती है।",
+
+    "dashboard.recentActivity":
+      "हाल की बचाव गतिविधि",
+
+    "dashboard.notificationStream":
+      "नोटिफिकेशन स्ट्रीम",
+
+    "dashboard.loadingActivity":
+      "बचाव गतिविधि लोड हो रही है...",
+
+    "dashboard.noActivity":
+      "अभी कोई बचाव गतिविधि नहीं है।",
+
+    "dashboard.noActivityDesc":
+      "नया डेमो शुरू करने के लिए एक नया भोजन दान पोस्ट करें।",
+
+    "dashboard.updated":
+      "अपडेट: {time}",
+
+    "dashboard.updating":
+      "अपडेट हो रहा है...",
+
+    "dashboard.refreshError":
+      "डैशबोर्ड रिफ्रेश नहीं हो सका: {message}",
+
+    "dashboard.chartDelivered":
+      "डिलीवरी पूरी",
+
+    "dashboard.chartMatched":
+      "मैच हुआ",
+
+    "dashboard.chartAccepted":
+      "स्वीकार किया गया",
+
+    "dashboard.chartPickedUp":
+      "पिकअप हो गया",
+
+    "dashboard.chartPosted":
+      "पोस्ट किया गया",
+
+    "dashboard.chartFailed":
+      "असफल",
+
+    "dashboard.justNow":
+      "अभी",
+
+    "dashboard.minutesAgo":
+      "{count} मिनट पहले",
+
+    "dashboard.hoursAgo":
+      "{count} घंटे पहले",
+
+    "dashboard.daysAgo":
+      "{count} दिन पहले",
+
+    "dashboard.dayAgo":
+      "1 दिन पहले",
+
+    "dashboard.resetTitle":
+      "डेमो डेटा रीसेट करें?",
+
+    "dashboard.resetDescription":
+      "यह सभी परीक्षण भोजन दान और बचाव नोटिफिकेशन हटा देगा ताकि आप जजिंग के लिए नया साफ डेमो शुरू कर सकें।",
+
+    "dashboard.resetShelters":
+      "✅ सभी 8 साझेदार आश्रय केंद्र बने रहेंगे।",
+
+    "dashboard.resetConfig":
+      "✅ Smart Match की सेटिंग नहीं बदलेगी।",
+
+    "dashboard.resetCode":
+      "✅ वेबसाइट के कोड पर कोई असर नहीं पड़ेगा।",
+
+    "dashboard.resetDelete":
+      "❌ वर्तमान भोजन दान इतिहास और नोटिफिकेशन हटा दिए जाएंगे।",
+
+    "dashboard.resetting":
+      "रीसेट हो रहा है...",
+
+    "dashboard.resetSuccess":
+      "डेमो रीसेट पूरा ✓ {donations} भोजन दान और {notifications} नोटिफिकेशन हटाए गए। {shelters} आश्रय केंद्र सुरक्षित रखे गए।",
+
+    "dashboard.resetFailed":
+      "डेमो रीसेट असफल: {message}",
+
+    "dashboard.kg":
+      "{value} किग्रा"
+
+  }
+);
+
+
+/* =====================================================
+   ELEMENTS
+===================================================== */
+
+const mealsSaved =
+  document.getElementById(
+    "mealsSaved"
+  );
+
+const foodRescued =
+  document.getElementById(
+    "foodRescued"
+  );
+
+const co2Saved =
+  document.getElementById(
+    "co2Saved"
+  );
+
+const partnerShelters =
+  document.getElementById(
+    "partnerShelters"
+  );
+
+const deliveredRescues =
+  document.getElementById(
+    "deliveredRescues"
+  );
+
+const activeRescues =
+  document.getElementById(
+    "activeRescues"
+  );
+
+const autoRematches =
+  document.getElementById(
+    "autoRematches"
+  );
+
+const successRate =
+  document.getElementById(
+    "successRate"
+  );
+
+const healthSuccess =
+  document.getElementById(
+    "healthSuccess"
+  );
+
+const healthActive =
+  document.getElementById(
+    "healthActive"
+  );
+
+const healthRematches =
+  document.getElementById(
+    "healthRematches"
+  );
+
+const healthFailed =
+  document.getElementById(
+    "healthFailed"
+  );
+
+const successBar =
+  document.getElementById(
+    "successBar"
+  );
+
+const activityList =
+  document.getElementById(
+    "activityList"
+  );
+
+const lastUpdated =
+  document.getElementById(
+    "lastUpdated"
+  );
+
+const errorBox =
+  document.getElementById(
+    "errorBox"
+  );
+
+const successBox =
+  document.getElementById(
+    "successBox"
+  );
+
+const resetDemoBtn =
+  document.getElementById(
+    "resetDemoBtn"
+  );
+
+const resetModal =
+  document.getElementById(
+    "resetModal"
+  );
+
+const cancelResetBtn =
+  document.getElementById(
+    "cancelResetBtn"
+  );
+
+const confirmResetBtn =
+  document.getElementById(
+    "confirmResetBtn"
+  );
+
+
+let statusChartInstance =
+  null;
+
+let resetBusy =
+  false;
+
+let lastNotifications =
+  [];
+
+let lastCounts =
+  null;
+
+let currentErrorState =
+  null;
+
+let currentSuccessState =
+  null;
+
+
+/* =====================================================
+   SAFE HTML
+===================================================== */
+
+function esc(value){
+
+  return String(
+    value ?? ""
+  )
+  .replace(
+
+    /[&<>"']/g,
+
+    character => ({
+
+      "&":"&amp;",
+      "<":"&lt;",
+      ">":"&gt;",
+      '"':"&quot;",
+      "'":"&#39;"
+
+    }[character])
+
+  );
+
+}
+
+
+/* =====================================================
+   EVENT ICON
+===================================================== */
+
+function eventIcon(type){
+
+  const icons = {
+
+    matched:"🧠",
+
+    posted:"🍱",
+
+    rematched:"🔄",
+
+    accepted:"✅",
+
+    picked_up:"📦",
+
+    delivered:"🎉",
+
+    unmatched:"⚠️"
+
+  };
+
+
+  return (
+    icons[type]
+    ||
+    "🔔"
+  );
+
+}
+
+
+/* =====================================================
+   FRIENDLY TIME
+===================================================== */
+
+function friendlyTime(iso){
+
+  if(!iso){
+
+    return "";
+
+  }
+
+
+  const timestamp =
+    new Date(
+      iso
+    )
+    .getTime();
+
+
+  const seconds =
+    Math.max(
+
+      0,
+
+      Math.floor(
+
+        (
+          Date.now()
+          -
+          timestamp
+        )
+
+        /
+
+        1000
+
+      )
+
+    );
+
+
+  if(seconds < 60){
+
+    return t(
+      "dashboard.justNow"
+    );
+
+  }
+
+
+  const minutes =
+    Math.floor(
+      seconds / 60
+    );
+
+
+  if(minutes < 60){
+
+    return t(
+      "dashboard.minutesAgo",
+      {
+        count:
+          minutes
+      }
+    );
+
+  }
+
+
+  const hours =
+    Math.floor(
+      minutes / 60
+    );
+
+
+  if(hours < 24){
+
+    return t(
+      "dashboard.hoursAgo",
+      {
+        count:
+          hours
+      }
+    );
+
+  }
+
+
+  const days =
+    Math.floor(
+      hours / 24
+    );
+
+
+  if(days === 1){
+
+    return t(
+      "dashboard.dayAgo"
+    );
+
+  }
+
+
+  return t(
+    "dashboard.daysAgo",
+    {
+      count:
+        days
+    }
+  );
+
+}
+
+
+/* =====================================================
+   CLOCK
+===================================================== */
+
+function currentClock(){
+
+  const language =
+    getCurrentLanguage();
+
+
+  return new Date()
+    .toLocaleTimeString(
+
+      language === "hi"
+      ?
+      "hi-IN"
+      :
+      "en-IN",
+
+      {
+
+        hour:"2-digit",
+
+        minute:"2-digit"
+
+      }
+
+    );
+
+}
+
+
+/* =====================================================
+   MESSAGE HELPERS
+===================================================== */
+
+function setDashboardError(
+  key,
+  variables = {}
+){
+
+  if(!key){
+
+    currentErrorState =
+      null;
+
+    errorBox.style.display =
+      "none";
+
+    errorBox.textContent =
+      "";
+
+    return;
+
+  }
+
+
+  currentErrorState = {
+    key,
+    variables
+  };
+
+
+  errorBox.style.display =
+    "block";
+
+
+  errorBox.textContent =
+    t(
+      key,
+      variables
+    );
+
+}
+
+
+function setDashboardSuccess(
+  key,
+  variables = {}
+){
+
+  if(!key){
+
+    currentSuccessState =
+      null;
+
+    successBox.style.display =
+      "none";
+
+    successBox.textContent =
+      "";
+
+    return;
+
+  }
+
+
+  currentSuccessState = {
+    key,
+    variables
+  };
+
+
+  successBox.style.display =
+    "block";
+
+
+  successBox.textContent =
+    t(
+      key,
+      variables
+    );
+
+}
+
+
+function refreshDashboardMessages(){
+
+  if(currentErrorState){
+
+    errorBox.textContent =
+      t(
+        currentErrorState.key,
+        currentErrorState.variables
+      );
+
+  }
+
+
+  if(currentSuccessState){
+
+    successBox.textContent =
+      t(
+        currentSuccessState.key,
+        currentSuccessState.variables
+      );
+
+  }
+
+}
+
+
+/* =====================================================
+   REMATCH COUNT
+===================================================== */
+
+function rejectedShelterCount(
+  donation
+){
+
+  const value =
+    donation.rejected_org_ids;
+
+
+  if(
+    value == null
+    ||
+    String(value).trim() === ""
+  ){
+
+    return 0;
+
+  }
+
+
+  return String(value)
+
+    .split(",")
+
+    .map(
+      item =>
+        item.trim()
+    )
+
+    .filter(
+      item =>
+        item !== ""
+    )
+
+    .length;
+
+}
+
+
+function calculateAutoRematches(
+  donations
+){
+
+  let total =
+    0;
+
+
+  donations.forEach(
+
+    donation => {
+
+
+      const rejectionCount =
+        rejectedShelterCount(
+          donation
+        );
+
+
+      if(
+        rejectionCount === 0
+      ){
+
+        return;
+
+      }
+
+
+      const progressedAfterMatch =
+
+        [
+          S.MATCHED,
+          S.ACCEPTED,
+          S.PICKED_UP,
+          S.DELIVERED
+        ]
+
+        .includes(
+          donation.status
+        );
+
+
+      if(
+        donation.matched_org_id
+        !=
+        null
+
+        ||
+
+        progressedAfterMatch
+      ){
+
+        total +=
+          rejectionCount;
+
+        return;
+
+      }
+
+
+      if(
+        donation.status
+        ===
+        S.REJECTED
+      ){
+
+        total +=
+
+          Math.max(
+
+            0,
+
+            rejectionCount - 1
+
+          );
+
+      }
+
+
+    }
+
+  );
+
+
+  return total;
+
+}
+
+
+/* =====================================================
+   ACTIVITY
+
+   title/message backend/database se aate hain.
+   Unhe intentionally translate nahi kar rahe.
+===================================================== */
+
+function renderActivity(
+  notifications
+){
+
+  lastNotifications =
+    notifications;
+
+
+  const recent =
+
+    notifications
+    .slice(
+      0,
+      6
+    );
+
+
+  if(!recent.length){
+
+    activityList.innerHTML = `
+
+      <div class="empty">
+
+        <div style="
+          font-size:40px;
+          margin-bottom:10px;
+        ">
+
+          🌿
+
+        </div>
+
+        ${t(
+          "dashboard.noActivity"
+        )}
+
+        <br><br>
+
+        ${t(
+          "dashboard.noActivityDesc"
+        )}
+
+      </div>
+
+    `;
+
+
+    return;
+
+  }
+
+
+  activityList.innerHTML =
+
+    recent
+    .map(
+
+      item => `
+
+      <div class="activity">
+
+
+        <div class="activity-icon">
+
+          ${eventIcon(
+            item.event_type
+          )}
+
+        </div>
+
+
+        <div>
+
+          <h3>
+
+            ${esc(
+              item.title
+            )}
+
+          </h3>
+
+          <p>
+
+            ${esc(
+              item.message
+            )}
+
+          </p>
+
+        </div>
+
+
+        <div class="activity-time">
+
+          ${friendlyTime(
+            item.created_at
+          )}
+
+        </div>
+
+
+      </div>
+
+      `
+
+    )
+
+    .join("");
+
+}
+
+
+/* =====================================================
+   CHART
+===================================================== */
+
+function renderStatusChart(
+  counts
+){
+
+  lastCounts =
+    counts;
+
+
+  const canvas =
+    document.getElementById(
+      "statusChart"
+    );
+
+
+  if(
+    statusChartInstance
+  ){
+
+    statusChartInstance.destroy();
+
+  }
+
+
+  statusChartInstance =
+
+    new Chart(
+
+      canvas,
+
+      {
+
+        type:"doughnut",
+
+
+        data:{
+
+          labels:[
+
+            t(
+              "dashboard.chartDelivered"
+            ),
+
+            t(
+              "dashboard.chartMatched"
+            ),
+
+            t(
+              "dashboard.chartAccepted"
+            ),
+
+            t(
+              "dashboard.chartPickedUp"
+            ),
+
+            t(
+              "dashboard.chartPosted"
+            ),
+
+            t(
+              "dashboard.chartFailed"
+            )
+
+          ],
+
+
+          datasets:[{
+
+            data:[
+
+              counts.delivered,
+
+              counts.matched,
+
+              counts.accepted,
+
+              counts.pickedUp,
+
+              counts.posted,
+
+              counts.failed
+
+            ],
+
+
+            backgroundColor:[
+
+              "#2f7d5b",
+
+              "#e9a319",
+
+              "#7259b8",
+
+              "#4378a8",
+
+              "#9aa59f",
+
+              "#c9513e"
+
+            ],
+
+
+            borderWidth:0,
+
+            hoverOffset:5
+
+          }]
+
+        },
+
+
+        options:{
+
+          responsive:true,
+
+          maintainAspectRatio:false,
+
+          cutout:"68%",
+
+
+          plugins:{
+
+            legend:{
+
+              position:"bottom",
+
+
+              labels:{
+
+                usePointStyle:true,
+
+                padding:18,
+
+
+                font:{
+
+                  family:
+                    "Bricolage Grotesque"
+
+                }
+
+              }
+
+            }
+
+          }
+
+        }
+
+      }
+
+    );
+
+}
+
+
+/* =====================================================
+   LOAD DASHBOARD
+===================================================== */
+
+async function loadDashboard(){
+
+
+  lastUpdated.textContent =
+    t(
+      "dashboard.updating"
+    );
+
+
+  try{
+
+
+    const [
+      stats,
+      donations,
+      notifications
+    ] =
+
+    await Promise.all([
+
+      call(
+        "/api/stats"
+      ),
+
+      getDonations(),
+
+      call(
+        "/api/notifications?limit=100"
+      )
+
+    ]);
+
+
+    const delivered =
+
+      donations.filter(
+
+        donation =>
+
+          donation.status
+          ===
+          S.DELIVERED
+
+      ).length;
+
+
+    const matched =
+
+      donations.filter(
+
+        donation =>
+
+          donation.status
+          ===
+          S.MATCHED
+
+      ).length;
+
+
+    const accepted =
+
+      donations.filter(
+
+        donation =>
+
+          donation.status
+          ===
+          S.ACCEPTED
+
+      ).length;
+
+
+    const pickedUp =
+
+      donations.filter(
+
+        donation =>
+
+          donation.status
+          ===
+          S.PICKED_UP
+
+      ).length;
+
+
+    const posted =
+
+      donations.filter(
+
+        donation =>
+
+          donation.status
+          ===
+          "posted"
+
+      ).length;
+
+
+    const rejected =
+
+      donations.filter(
+
+        donation =>
+
+          donation.status
+          ===
+          S.REJECTED
+
+      ).length;
+
+
+    const expired =
+
+      donations.filter(
+
+        donation =>
+
+          donation.status
+          ===
+          "expired"
+
+      ).length;
+
+
+    const failed =
+      rejected
+      +
+      expired;
+
+
+    const active =
+      matched
+      +
+      accepted
+      +
+      pickedUp;
+
+
+    const rematches =
+      calculateAutoRematches(
+        donations
+      );
+
+
+    const terminalOutcomes =
+      delivered
+      +
+      failed;
+
+
+    const success =
+
+      terminalOutcomes > 0
+
+      ?
+
+      (
+        delivered
+        /
+        terminalOutcomes
+      )
+      *
+      100
+
+      :
+
+      0;
+
+
+    const meals =
+      Number(
+        stats.total_meals_saved
+        ||
+        0
+      );
+
+
+    const kg =
+      meals
+      *
+      0.4;
+
+
+    const co2 =
+      Number(
+        stats.co2_saved_kg
+        ||
+        0
+      );
+
+
+    const language =
+      getCurrentLanguage();
+
+
+    const locale =
+
+      language === "hi"
+
+      ?
+
+      "hi-IN"
+
+      :
+
+      "en-IN";
+
+
+    mealsSaved.textContent =
+      meals.toLocaleString(
+        locale
+      );
+
+
+    foodRescued.textContent =
+
+      t(
+
+        "dashboard.kg",
+
+        {
+          value:
+
+            kg.toLocaleString(
+
+              locale,
+
+              {
+                maximumFractionDigits:1
+              }
+
+            )
+        }
+
+      );
+
+
+    co2Saved.textContent =
+
+      t(
+
+        "dashboard.kg",
+
+        {
+          value:
+
+            co2.toLocaleString(
+
+              locale,
+
+              {
+                maximumFractionDigits:1
+              }
+
+            )
+        }
+
+      );
+
+
+    partnerShelters.textContent =
+
+      Number(
+        stats.total_orgs
+        ||
+        0
+      )
+      .toLocaleString(
+        locale
+      );
+
+
+    deliveredRescues.textContent =
+      delivered.toLocaleString(
+        locale
+      );
+
+
+    activeRescues.textContent =
+      active.toLocaleString(
+        locale
+      );
+
+
+    autoRematches.textContent =
+      rematches.toLocaleString(
+        locale
+      );
+
+
+    successRate.textContent =
+
+      success.toFixed(0)
+      +
+      "%";
+
+
+    healthSuccess.textContent =
+
+      success.toFixed(0)
+      +
+      "%";
+
+
+    successBar.style.width =
+
+      Math.min(
+        100,
+        success
+      )
+
+      +
+      "%";
+
+
+    healthActive.textContent =
+      active.toLocaleString(
+        locale
+      );
+
+
+    healthRematches.textContent =
+      rematches.toLocaleString(
+        locale
+      );
+
+
+    healthFailed.textContent =
+      failed.toLocaleString(
+        locale
+      );
+
+
+    renderStatusChart({
+
+      delivered,
+
+      matched,
+
+      accepted,
+
+      pickedUp,
+
+      posted,
+
+      failed
+
     });
 
-    const finished = ["delivered", "rejected", "expired"];
-    $("recent").innerHTML = donations.slice().sort((a, b) => b.id - a.id).slice(0, 6).map(d => `
-      <div class="row">
-        <div><b>${escapeHtml(d.donor_name)}</b>, ${d.quantity_portions} portions<br>
-          <small>${escapeHtml(d.food_description)}${d.matched_org_name ? " to " + escapeHtml(d.matched_org_name) : ""}</small></div>
-        <div class="right">${getStatusBadge(d.status)}${finished.includes(d.status) ? "" : getExpiryBadge(d.expires_at)}</div>
-      </div>`).join("");
-  } catch (err) {
-    showToast("Could not load data. Is the Flask server running?");
-    console.error(err);
+
+    renderActivity(
+      notifications
+    );
+
+
+    lastUpdated.textContent =
+
+      t(
+
+        "dashboard.updated",
+
+        {
+          time:
+            currentClock()
+        }
+
+      );
+
+
+    setDashboardError(
+      ""
+    );
+
+
   }
+
+
+  catch(error){
+
+
+    setDashboardError(
+
+      "dashboard.refreshError",
+
+      {
+        message:
+          error.message
+      }
+
+    );
+
+
+  }
+
 }
+
+
+/* =====================================================
+   OPEN RESET MODAL
+===================================================== */
+
+resetDemoBtn.onclick =
+() => {
+
+  resetModal.classList.add(
+    "show"
+  );
+
+};
+
+
+/* =====================================================
+   CLOSE RESET MODAL
+===================================================== */
+
+cancelResetBtn.onclick =
+() => {
+
+
+  if(resetBusy){
+
+    return;
+
+  }
+
+
+  resetModal.classList.remove(
+    "show"
+  );
+
+};
+
+
+resetModal.onclick =
+event => {
+
+
+  if(
+    event.target === resetModal
+    &&
+    !resetBusy
+  ){
+
+    resetModal.classList.remove(
+      "show"
+    );
+
+  }
+
+};
+
+
+/* =====================================================
+   RESET DEMO DATA
+===================================================== */
+
+confirmResetBtn.onclick =
+async () => {
+
+
+  if(resetBusy){
+
+    return;
+
+  }
+
+
+  resetBusy =
+    true;
+
+
+  confirmResetBtn.disabled =
+    true;
+
+
+  cancelResetBtn.disabled =
+    true;
+
+
+  confirmResetBtn.textContent =
+    t(
+      "dashboard.resetting"
+    );
+
+
+  setDashboardSuccess(
+    ""
+  );
+
+
+  setDashboardError(
+    ""
+  );
+
+
+  try{
+
+
+    const result =
+
+      await call(
+
+        "/api/demo-reset",
+
+        post({
+
+          confirm:
+            "RESET_DEMO"
+
+        })
+
+      );
+
+
+    resetModal.classList.remove(
+      "show"
+    );
+
+
+    setDashboardSuccess(
+
+      "dashboard.resetSuccess",
+
+      {
+
+        donations:
+          result.deleted_donations,
+
+        notifications:
+          result.deleted_notifications,
+
+        shelters:
+          result.shelters_preserved
+
+      }
+
+    );
+
+
+    await loadDashboard();
+
+
+    if(
+      typeof updateNotificationBadge
+      ===
+      "function"
+    ){
+
+      updateNotificationBadge();
+
+    }
+
+
+  }
+
+
+  catch(error){
+
+
+    setDashboardError(
+
+      "dashboard.resetFailed",
+
+      {
+        message:
+          error.message
+      }
+
+    );
+
+
+  }
+
+
+  finally{
+
+
+    resetBusy =
+      false;
+
+
+    confirmResetBtn.disabled =
+      false;
+
+
+    cancelResetBtn.disabled =
+      false;
+
+
+    confirmResetBtn.textContent =
+      t(
+        "dashboard.resetDemo"
+      );
+
+
+  }
+
+};
+
+
+/* =====================================================
+   LANGUAGE CHANGE
+===================================================== */
+
+window.addEventListener(
+  "languagechange",
+  () => {
+
+
+    refreshDashboardMessages();
+
+
+    if(
+      lastCounts
+    ){
+
+      renderStatusChart(
+        lastCounts
+      );
+
+    }
+
+
+    if(
+      lastNotifications
+    ){
+
+      renderActivity(
+        lastNotifications
+      );
+
+    }
+
+
+    if(resetBusy){
+
+      confirmResetBtn.textContent =
+        t(
+          "dashboard.resetting"
+        );
+
+    }
+
+
+    loadDashboard();
+
+  }
+);
+
+
+/* =====================================================
+   START
+===================================================== */
+
 loadDashboard();
-setInterval(loadDashboard, 10000);  // refresh every 10 seconds so it feels live
-startExpiryTimers();
+
+
+setInterval(
+
+  loadDashboard,
+
+  10000
+
+);
+
 </script>
+
+
 </body>
-</html>
+
+</html> 

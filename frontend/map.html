@@ -1,61 +1,975 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Live map - Surplus-to-Shelter</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
-<link rel="stylesheet" href="shared.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Live Rescue Map | Surplus-to-Shelter</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<link rel="stylesheet"
+href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600;700;800&display=swap">
+
 <style>
-  #map { height:calc(100vh - 210px); min-height:420px; border:1px solid var(--line); border-radius:10px; }
-  .key { display:flex; gap:1.25rem; flex-wrap:wrap; margin:.5rem 0 .9rem; }
-  .dot { display:inline-block; width:.8rem; height:.8rem; border-radius:50%; margin-right:.35rem; vertical-align:middle; }
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:"Bricolage Grotesque",system-ui,sans-serif;
+  background:#f4f7f3;
+  color:#17231f;
+}
+nav{
+  min-height:70px;
+  display:flex;
+  align-items:center;
+  padding:0 7%;
+  background:#fff;
+  border-bottom:1px solid #dce4dc;
+  position:sticky;
+  top:0;
+  z-index:1000;
+}
+.logo{
+  font-size:21px;
+  font-weight:800;
+  color:#14463a;
+  margin-right:auto;
+}
+nav a{
+  margin-left:25px;
+  text-decoration:none;
+  color:#34473f;
+  font-weight:700;
+}
+nav a.active{
+  color:#14463a;
+  border-bottom:2px solid #e9a319;
+  padding-bottom:5px;
+}
+.page{
+  max-width:1250px;
+  margin:auto;
+  padding:45px 6%;
+}
+.eyebrow{
+  display:inline-block;
+  padding:7px 13px;
+  background:#dff1e7;
+  color:#17603a;
+  border-radius:30px;
+  font-weight:800;
+  margin-bottom:13px;
+}
+h1{
+  font-size:48px;
+  color:#14463a;
+  margin:0 0 9px;
+}
+.sub{
+  font-size:18px;
+  color:#69766f;
+  margin:0;
+  max-width:760px;
+  line-height:1.55;
+}
+.stats{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:15px;
+  margin:28px 0 20px;
+}
+.stat{
+  background:#fff;
+  border:1px solid #dce4dc;
+  border-radius:14px;
+  padding:17px 20px;
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+.stat-icon{
+  width:45px;
+  height:45px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#eaf5ee;
+  border-radius:11px;
+  font-size:22px;
+}
+.stat strong{
+  display:block;
+  font-size:25px;
+  color:#14463a;
+}
+.stat span{
+  color:#68766f;
+  font-size:13px;
+}
+.map-layout{
+  display:grid;
+  grid-template-columns:1fr 280px;
+  gap:20px;
+  align-items:start;
+}
+.map-card{
+  background:#fff;
+  border:1px solid #dce4dc;
+  border-radius:18px;
+  padding:16px;
+  box-shadow:0 12px 35px rgba(20,70,58,.06);
+}
+.map-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:15px;
+  margin-bottom:14px;
+}
+.map-top h2{
+  margin:0;
+  color:#14463a;
+  font-size:22px;
+}
+.live{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:6px 10px;
+  background:#eaf5ee;
+  color:#17603a;
+  border-radius:30px;
+  font-size:13px;
+  font-weight:800;
+}
+.live-dot{
+  width:8px;
+  height:8px;
+  background:#2e9b57;
+  border-radius:50%;
+}
+#map{
+  width:100%;
+  height:600px;
+  border-radius:13px;
+  background:#e7ece8;
+  overflow:hidden;
+}
+.side{
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+.legend-card{
+  background:#14463a;
+  color:#fff;
+  border-radius:18px;
+  padding:23px;
+}
+.legend-card h2{
+  margin:0 0 8px;
+}
+.legend-card>p{
+  color:#d7e6df;
+  font-size:14px;
+  line-height:1.5;
+}
+.legend-row{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  padding:11px 0;
+  border-bottom:1px solid rgba(255,255,255,.13);
+}
+.legend-row:last-child{border-bottom:none}
+.legend-emoji{
+  width:36px;
+  height:36px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:9px;
+  background:rgba(255,255,255,.12);
+  font-size:20px;
+}
+.legend-row b{
+  display:block;
+  font-size:14px;
+}
+.legend-row span{
+  display:block;
+  color:#d6e4de;
+  font-size:12px;
+  margin-top:2px;
+}
+.info-card{
+  background:#fff8e8;
+  border:1px solid #efdcae;
+  border-radius:16px;
+  padding:21px;
+}
+.info-card h3{
+  margin:0 0 8px;
+  color:#79530a;
+}
+.info-card p{
+  color:#6c614a;
+  line-height:1.55;
+  margin:0;
+  font-size:14px;
+}
+.update{
+  color:#748079;
+  font-size:13px;
+  margin-top:12px;
+  text-align:right;
+}
+.error{
+  display:none;
+  margin-bottom:18px;
+  padding:12px 14px;
+  background:#fff0ed;
+  color:#a03526;
+  border:1px solid #e6bbb2;
+  border-radius:10px;
+}
+.marker-emoji{
+  width:38px!important;
+  height:38px!important;
+  border:none!important;
+  background:transparent!important;
+}
+.marker-bubble{
+  width:36px;
+  height:36px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:50%;
+  background:#fff;
+  border:3px solid #14463a;
+  box-shadow:0 3px 12px rgba(0,0,0,.22);
+  font-size:20px;
+}
+.driver-bubble{
+  border-color:#e9a319;
+}
+.donor-bubble{
+  border-color:#2f6fdb;
+}
+.shelter-bubble{
+  border-color:#14463a;
+}
+.leaflet-popup-content-wrapper{
+  border-radius:12px;
+}
+.leaflet-popup-content{
+  font-family:"Bricolage Grotesque",system-ui,sans-serif;
+  min-width:210px;
+  line-height:1.55;
+}
+.badge{
+  display:inline-block;
+  padding:4px 8px;
+  margin-top:7px;
+  border-radius:20px;
+  font-size:11px;
+  font-weight:800;
+}
+@media(max-width:900px){
+  nav a{display:none}
+  .map-layout{grid-template-columns:1fr}
+  .stats{grid-template-columns:1fr 1fr}
+  #map{height:520px}
+}
+@media(max-width:550px){
+  .page{padding:35px 17px}
+  h1{font-size:38px}
+  .stats{grid-template-columns:1fr}
+  #map{height:470px}
+}
 </style>
 </head>
+
 <body>
-<nav><b>Surplus-to-Shelter</b><a href="donor.html">Donate</a><a href="dashboard.html">Dashboard</a><a href="map.html" class="active">Live map</a></nav>
-<main>
-  <h1>Live rescue map</h1>
-  <div class="key">
-    <span><i class="dot" style="background:#1c4a38"></i>Shelter</span>
-    <span><i class="dot" style="background:#e9a23b"></i>Pickup point (colour shows status)</span>
-    <span>Dashed line: pickup to matched shelter</span>
-  </div>
-  <div id="map"></div>
+
+<nav>
+  <div class="logo">🍲 Surplus-to-Shelter</div>
+  <a href="index.html">Home</a>
+  <a href="donor.html">Donate</a>
+  <a href="shelter.html">Shelter</a>
+  <a href="driver.html">Driver</a>
+  <a href="map.html" class="active">Live Map</a>
+  <a href="dashboard.html">Impact</a>
+</nav>
+
+<main class="page">
+
+  <section>
+    <div class="eyebrow">📍 Real-Time Rescue Network</div>
+    <h1>Live food rescue map</h1>
+    <p class="sub">
+      Follow shelters, food pickups, driver location and rescue routes across Jaipur.
+    </p>
+  </section>
+
+  <section class="stats">
+    <div class="stat">
+      <div class="stat-icon">🏠</div>
+      <div>
+        <strong id="shelterCount">—</strong>
+        <span>Partner shelters</span>
+      </div>
+    </div>
+
+    <div class="stat">
+      <div class="stat-icon">🍱</div>
+      <div>
+        <strong id="activeCount">—</strong>
+        <span>Active donations</span>
+      </div>
+    </div>
+
+    <div class="stat">
+      <div class="stat-icon">🚗</div>
+      <div>
+        <strong id="driverState">—</strong>
+        <span>Driver tracking</span>
+      </div>
+    </div>
+
+    <div class="stat">
+      <div class="stat-icon">⚡</div>
+      <div>
+        <strong id="urgentCount">—</strong>
+        <span>Urgent rescues</span>
+      </div>
+    </div>
+  </section>
+
+  <div id="errorBox" class="error"></div>
+
+  <section class="map-layout">
+
+    <div class="map-card">
+
+      <div class="map-top">
+        <h2>Jaipur rescue network</h2>
+        <div class="live">
+          <span class="live-dot"></span>
+          Live
+        </div>
+      </div>
+
+      <div id="map"></div>
+
+      <div class="update" id="lastUpdate">
+        Loading live data...
+      </div>
+
+    </div>
+
+    <aside class="side">
+
+      <section class="legend-card">
+
+        <h2>Map guide</h2>
+
+        <p>
+          The map shows the latest rescue network state.
+        </p>
+
+        <div class="legend-row">
+          <div class="legend-emoji">🏠</div>
+          <div>
+            <b>Shelter</b>
+            <span>Food recipient</span>
+          </div>
+        </div>
+
+        <div class="legend-row">
+          <div class="legend-emoji">🍱</div>
+          <div>
+            <b>Donor</b>
+            <span>Food pickup location</span>
+          </div>
+        </div>
+
+        <div class="legend-row">
+          <div class="legend-emoji">🚗</div>
+          <div>
+            <b>Driver</b>
+            <span>Latest GPS / demo location</span>
+          </div>
+        </div>
+
+        <div class="legend-row">
+          <div class="legend-emoji">〰️</div>
+          <div>
+            <b>Suggested route</b>
+            <span>Pickup to shelter</span>
+          </div>
+        </div>
+
+      </section>
+
+      <section class="info-card">
+        <h3>🧭 Demo tip</h3>
+        <p>
+          During an active rescue, the map shows donor, shelter and driver markers.
+          After delivery, the latest completed rescue route remains visible so judges
+          can still see the end-to-end journey.
+        </p>
+      </section>
+
+    </aside>
+
+  </section>
+
 </main>
-<script src="config.js"></script><script src="fake-data.js"></script><script src="shared.js"></script>
+
 <script>
-const map = L.map("map").setView(MAP_CENTER, 12);
-L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "&copy; OpenStreetMap contributors" }).addTo(map);
-const layer = L.layerGroup().addTo(map);
 
-async function loadMap() {
-  try {
-    const [orgs, donations] = await Promise.all([getOrgs(), getDonations()]);
-    layer.clearLayers();
-    const orgById = {};
-    orgs.forEach(o => orgById[o.id] = o);
+const API = "http://127.0.0.1:5000";
+const JAIPUR = [26.9124, 75.7873];
 
-    orgs.forEach(o => L.circleMarker([o.lat, o.lng], { radius: 10, color: "#fff", weight: 2, fillColor: "#1c4a38", fillOpacity: 1 })
-      .bindPopup(`<b>${escapeHtml(o.name)}</b><br>${escapeHtml(o.address)}<br>Capacity: ${o.capacity_portions} portions`).addTo(layer));
+const map = L.map("map").setView(JAIPUR, 12);
 
-    donations.filter(d => !["delivered", "rejected", "expired"].includes(d.status)).forEach(d => {
-      const org = orgById[d.matched_org_id];
-      if (org) L.polyline([[d.lat, d.lng], [org.lat, org.lng]], { color: "#e9a23b", weight: 3, dashArray: "6 8" }).addTo(layer);
-      const color = (STATUS_INFO[d.status] || {}).color || "#8f9b94";
-      L.circleMarker([d.lat, d.lng], { radius: 8, color: "#fff", weight: 2, fillColor: color, fillOpacity: 1 })
-        .bindPopup(`<b>${escapeHtml(d.donor_name)}</b><br>${escapeHtml(d.food_description)}, ${d.quantity_portions} portions<br>
-          ${getStatusBadge(d.status)} ${getExpiryBadge(d.expires_at)}<br>
-          ${org ? "To " + escapeHtml(org.name) + (d.distance_km ? ", " + d.distance_km + " km" : "") : "No shelter matched yet"}`).addTo(layer);
-    });
-  } catch (err) {
-    showToast("Could not load map data. Is the Flask server running?");
-    console.error(err);
+/*
+  OpenStreetMap tiles are used here instead of the old Esri tiles.
+*/
+L.tileLayer(
+  "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+  {
+    maxZoom:19,
+    attribution:'&copy; OpenStreetMap contributors'
   }
+).addTo(map);
+
+const rescueLayer = L.layerGroup().addTo(map);
+
+function esc(value){
+  return String(value ?? "")
+    .replace(/[&<>"']/g, ch => ({
+      "&":"&amp;",
+      "<":"&lt;",
+      ">":"&gt;",
+      '"':"&quot;",
+      "'":"&#39;"
+    }[ch]));
 }
+
+async function api(path){
+  const response = await fetch(API + path, {
+    credentials:"include"
+  });
+
+  let data = {};
+  try{
+    data = await response.json();
+  }catch(error){}
+
+  if(!response.ok){
+    throw new Error(
+      data.error ||
+      data.message ||
+      `Request failed (${response.status})`
+    );
+  }
+
+  return data;
+}
+
+function emojiIcon(emoji, className){
+  return L.divIcon({
+    className:"marker-emoji",
+    html:`<div class="marker-bubble ${className}">${emoji}</div>`,
+    iconSize:[38,38],
+    iconAnchor:[19,19],
+    popupAnchor:[0,-20]
+  });
+}
+
+const shelterIcon = emojiIcon("🏠","shelter-bubble");
+const donorIcon = emojiIcon("🍱","donor-bubble");
+const driverIcon = emojiIcon("🚗","driver-bubble");
+
+function statusLabel(status){
+  const labels = {
+    posted:"Posted",
+    matched:"Matched",
+    accepted:"Driver assigned",
+    picked_up:"Food picked up",
+    delivered:"Delivered",
+    rejected:"Rejected",
+    expired:"Expired"
+  };
+  return labels[status] || status || "Unknown";
+}
+
+function statusColor(status){
+  const colors = {
+    posted:"#8f9b94",
+    matched:"#2f6fdb",
+    accepted:"#7b4fd1",
+    picked_up:"#e9a23b",
+    delivered:"#2e9b57",
+    rejected:"#c8452d",
+    expired:"#737b77"
+  };
+  return colors[status] || "#8f9b94";
+}
+
+function minutesRemaining(expiresAt){
+  const ms = new Date(expiresAt).getTime() - Date.now();
+  if(!Number.isFinite(ms)) return null;
+  return Math.ceil(ms / 60000);
+}
+
+function driverLocationFrom(data){
+
+  if(!data) return null;
+
+  const candidates = [
+    data,
+    data.location,
+    data.driver_location,
+    data.driver
+  ].filter(Boolean);
+
+  for(const item of candidates){
+    const lat = Number(item.lat ?? item.latitude);
+    const lng = Number(item.lng ?? item.longitude);
+
+    if(Number.isFinite(lat) && Number.isFinite(lng)){
+      return {lat,lng};
+    }
+  }
+
+  return null;
+}
+
+async function safeDriverLocation(){
+
+  try{
+    const data = await api("/api/driver/location");
+    return driverLocationFrom(data);
+  }
+  catch(error){
+    return null;
+  }
+
+}
+
+function addShelter(org, points){
+
+  const lat = Number(org.lat);
+  const lng = Number(org.lng);
+
+  if(!Number.isFinite(lat) || !Number.isFinite(lng)){
+    return;
+  }
+
+  points.push([lat,lng]);
+
+  L.marker(
+    [lat,lng],
+    {icon:shelterIcon}
+  )
+  .bindPopup(`
+    <b style="font-size:17px;color:#14463a">
+      🏠 ${esc(org.name)}
+    </b>
+    <br>
+    ${esc(org.address || "")}
+    <br><br>
+    <b>Capacity:</b>
+    ${esc(org.capacity_portions)} portions
+    ${
+      org.need_level != null
+      ? `<br><b>Need level:</b> ${esc(org.need_level)}/3`
+      : ""
+    }
+  `)
+  .addTo(rescueLayer);
+}
+
+function addDonation(donation, org, points, completed=false){
+
+  const lat = Number(donation.lat);
+  const lng = Number(donation.lng);
+
+  if(!Number.isFinite(lat) || !Number.isFinite(lng)){
+    return;
+  }
+
+  points.push([lat,lng]);
+
+  const color = statusColor(donation.status);
+  const mins = minutesRemaining(donation.expires_at);
+
+  L.marker(
+    [lat,lng],
+    {icon:donorIcon}
+  )
+  .bindPopup(`
+    <b style="font-size:17px;color:#14463a">
+      🍱 ${esc(donation.donor_name)}
+    </b>
+    <br>
+    ${esc(donation.food_description)}
+    <br>
+    <b>${esc(donation.quantity_portions)} portions</b>
+    <br>
+    <span
+      class="badge"
+      style="
+        background:${color}20;
+        color:${color};
+        border:1px solid ${color}55;
+      ">
+      ${esc(statusLabel(donation.status))}
+    </span>
+    ${
+      mins != null && !completed
+      ? `<br><br>⏳ ${mins > 0 ? esc(mins) + " min until expiry" : "Expired"}`
+      : ""
+    }
+    ${
+      org
+      ? `<br><br>🏠 To <b>${esc(org.name)}</b>`
+      : ""
+    }
+  `)
+  .addTo(rescueLayer);
+
+  if(org){
+
+    const orgLat = Number(org.lat);
+    const orgLng = Number(org.lng);
+
+    if(Number.isFinite(orgLat) && Number.isFinite(orgLng)){
+
+      L.polyline(
+        [
+          [lat,lng],
+          [orgLat,orgLng]
+        ],
+        {
+          color: completed ? "#2e9b57" : "#e9a319",
+          weight:4,
+          opacity:.9,
+          dashArray: completed ? "4 8" : "10 8"
+        }
+      )
+      .bindPopup(
+        completed
+        ? "✅ Latest completed rescue route"
+        : "🧭 Suggested donor → shelter route"
+      )
+      .addTo(rescueLayer);
+
+    }
+
+  }
+
+}
+
+async function loadMap(){
+
+  const errorBox =
+    document.getElementById("errorBox");
+
+  errorBox.style.display =
+    "none";
+
+  document.getElementById("lastUpdate").textContent =
+    "Loading live data...";
+
+  try{
+
+    const [
+      orgs,
+      donations,
+      driverLocation
+    ] = await Promise.all([
+      api("/api/orgs"),
+      api("/api/donations"),
+      safeDriverLocation()
+    ]);
+
+    rescueLayer.clearLayers();
+
+    const orgById = {};
+
+    orgs.forEach(org => {
+      orgById[String(org.id)] = org;
+    });
+
+    const active = donations.filter(
+      donation =>
+        ![
+          "delivered",
+          "rejected",
+          "expired"
+        ].includes(donation.status)
+    );
+
+    const urgent = active.filter(donation => {
+      const mins = minutesRemaining(donation.expires_at);
+      return mins != null && mins > 0 && mins < 60;
+    });
+
+    document.getElementById("shelterCount").textContent =
+      orgs.length;
+
+    document.getElementById("activeCount").textContent =
+      active.length;
+
+    document.getElementById("urgentCount").textContent =
+      urgent.length;
+
+    document.getElementById("driverState").textContent =
+      driverLocation ? "LIVE" : "OFF";
+
+    const points = [];
+
+    orgs.forEach(
+      org => addShelter(org, points)
+    );
+
+    active.forEach(donation => {
+
+      const org =
+        orgById[
+          String(donation.matched_org_id)
+        ];
+
+      addDonation(
+        donation,
+        org,
+        points,
+        false
+      );
+
+    });
+
+    /*
+      If no rescue is active, keep the latest delivered rescue
+      visible for a strong hackathon demo.
+    */
+    if(!active.length){
+
+      const delivered = donations
+        .filter(d => d.status === "delivered")
+        .sort((a,b) =>
+          new Date(b.updated_at || b.created_at || 0)
+          -
+          new Date(a.updated_at || a.created_at || 0)
+        );
+
+      if(delivered.length){
+
+        const latest =
+          delivered[0];
+
+        const org =
+          orgById[
+            String(latest.matched_org_id)
+          ];
+
+        addDonation(
+          latest,
+          org,
+          points,
+          true
+        );
+
+      }
+
+    }
+
+    /*
+      Driver marker.
+    */
+    if(driverLocation){
+
+      points.push([
+        driverLocation.lat,
+        driverLocation.lng
+      ]);
+
+      L.marker(
+        [
+          driverLocation.lat,
+          driverLocation.lng
+        ],
+        {icon:driverIcon}
+      )
+      .bindPopup(`
+        <b style="font-size:17px;color:#14463a">
+          🚗 Rescue Driver
+        </b>
+        <br>
+        Latest tracked location
+        <br><br>
+        ${driverLocation.lat.toFixed(5)},
+        ${driverLocation.lng.toFixed(5)}
+      `)
+      .addTo(rescueLayer);
+
+      /*
+        For an accepted rescue, show Driver → Donor.
+        For picked-up rescue, show Driver → Shelter.
+      */
+      const mission =
+        active.find(d => d.status === "picked_up")
+        ||
+        active.find(d => d.status === "accepted");
+
+      if(mission){
+
+        let destination = null;
+
+        if(mission.status === "accepted"){
+
+          const dLat =
+            Number(mission.lat);
+
+          const dLng =
+            Number(mission.lng);
+
+          if(Number.isFinite(dLat) && Number.isFinite(dLng)){
+            destination = [dLat,dLng];
+          }
+
+        }
+        else{
+
+          const org =
+            orgById[
+              String(mission.matched_org_id)
+            ];
+
+          if(org){
+
+            const oLat =
+              Number(org.lat);
+
+            const oLng =
+              Number(org.lng);
+
+            if(Number.isFinite(oLat) && Number.isFinite(oLng)){
+              destination = [oLat,oLng];
+            }
+
+          }
+
+        }
+
+        if(destination){
+
+          L.polyline(
+            [
+              [
+                driverLocation.lat,
+                driverLocation.lng
+              ],
+              destination
+            ],
+            {
+              color:"#2f6fdb",
+              weight:4,
+              opacity:.9
+            }
+          )
+          .bindPopup("🚗 Driver's current route")
+          .addTo(rescueLayer);
+
+        }
+
+      }
+
+    }
+
+    if(points.length > 1){
+
+      map.fitBounds(
+        points,
+        {
+          padding:[35,35],
+          maxZoom:13
+        }
+      );
+
+    }
+    else if(points.length === 1){
+
+      map.setView(
+        points[0],
+        13
+      );
+
+    }
+    else{
+
+      map.setView(
+        JAIPUR,
+        12
+      );
+
+    }
+
+    document.getElementById("lastUpdate").textContent =
+      "Last updated: "
+      +
+      new Date().toLocaleTimeString(
+        "en-IN",
+        {
+          hour:"2-digit",
+          minute:"2-digit"
+        }
+      );
+
+    setTimeout(
+      () => map.invalidateSize(),
+      150
+    );
+
+  }
+  catch(error){
+
+    console.error(error);
+
+    errorBox.textContent =
+      "Could not load map data: "
+      +
+      error.message;
+
+    errorBox.style.display =
+      "block";
+
+    document.getElementById("lastUpdate").textContent =
+      "Live data unavailable.";
+
+  }
+
+}
+
 loadMap();
-setInterval(loadMap, 10000);
-startExpiryTimers();
+
+setInterval(
+  loadMap,
+  10000
+);
+
+setTimeout(
+  () => map.invalidateSize(),
+  300
+);
+
 </script>
+
 </body>
 </html>

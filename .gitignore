@@ -1,0 +1,4 @@
+backend/donations.db
+__pycache__/
+*.pyc
+.env

@@ -1,25 +1,2777 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1"><title>Driver</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;700&display=swap">
-<link rel="stylesheet" href="style.css"></head><body>
-<script src="api.js"></script><script>navbar("driver.html")</script>
-<main><h1>Pickup jobs</h1><p class="sub">Shelter-approved pickups, most urgent first.</p>
-<div id="list"></div><div id="err" class="msg err" hidden></div></main>
-<script>
-async function draw(){
-  try{
-    const items = (await getDonations()).filter(d => [S.ACCEPTED,S.PICKED_UP].includes(d.status))
-      .sort((a,b)=> new Date(a.expires_at)-new Date(b.expires_at));
-    err.hidden = true;
-    list.innerHTML = items.length ? items.map(d => { const t = timeLeft(d.expires_at);
-      const next = d.status===S.ACCEPTED ? [S.PICKED_UP,"Mark picked up"] : [S.DELIVERED,"Mark delivered"];
-      return `<div class="job"><h3>${d.quantity_portions} portions: ${d.food_description}</h3>
-      <p>Pick up: ${d.donor_name}, ${d.pickup_address}</p><p>Deliver to: ${d.matched_org_name||"assigned shelter"}${d.distance_km!=null?` (${d.distance_km} km)`:""}</p>
-      <span class="tag ${t.cls}">${t.text}</span>
-      <button onclick="go(${d.id},'${next[0]}')">${next[1]}</button></div>`}).join("")
-      : `<div class="empty">No pickups waiting. Jobs appear once a shelter accepts.</div>`;
-  }catch(e){ err.hidden=false; err.textContent = e.message + ". Is the backend running?"; }
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0"
+>
+
+<title>
+  Driver Portal | Surplus-to-Shelter
+</title>
+
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600;700;800&display=swap"
+>
+
+<style>
+
+*{
+  box-sizing:border-box;
 }
-async function go(id,s){ try{ await setStatus(id,s); draw(); }catch(e){ err.hidden=false; err.textContent=e.message; } }
-draw(); setInterval(draw,10000);
-</script></body></html>
+
+body{
+  margin:0;
+
+  font-family:
+    "Bricolage Grotesque",
+    system-ui,
+    sans-serif;
+
+  background:#f4f7f3;
+
+  color:#17231f;
+}
+
+
+/* =========================
+   NAVBAR
+========================= */
+
+nav{
+
+  min-height:70px;
+
+  display:flex;
+
+  align-items:center;
+
+  padding:0 6%;
+
+  background:#ffffff;
+
+  border-bottom:
+    1px solid #dce4dc;
+
+  position:sticky;
+
+  top:0;
+
+  z-index:10;
+}
+
+
+.logo{
+
+  font-size:22px;
+
+  font-weight:800;
+
+  color:#14463a;
+
+  margin-right:auto;
+
+}
+
+
+nav a{
+
+  margin-left:22px;
+
+  text-decoration:none;
+
+  color:#34473f;
+
+  font-weight:700;
+
+}
+
+
+.user{
+
+  margin-left:20px;
+
+  padding-left:18px;
+
+  border-left:
+    1px solid #dce4dc;
+
+  color:#14463a;
+
+  font-weight:800;
+
+}
+
+
+.logout{
+
+  margin-left:10px;
+
+  border:none;
+
+  border-radius:8px;
+
+  background:#fff0ed;
+
+  color:#a53a2b;
+
+  padding:9px 13px;
+
+  font-family:inherit;
+
+  font-weight:800;
+
+  cursor:pointer;
+}
+
+
+/* =========================
+   PAGE
+========================= */
+
+.page{
+
+  max-width:1180px;
+
+  margin:auto;
+
+  padding:50px 6%;
+
+}
+
+
+.eyebrow{
+
+  display:inline-block;
+
+  padding:7px 13px;
+
+  border-radius:30px;
+
+  background:#dff1e7;
+
+  color:#17603a;
+
+  font-weight:800;
+
+  margin-bottom:12px;
+
+}
+
+
+h1{
+
+  margin:0 0 10px;
+
+  font-size:46px;
+
+  color:#14463a;
+
+}
+
+
+.sub{
+
+  color:#69766f;
+
+  font-size:18px;
+
+  line-height:1.55;
+
+  max-width:820px;
+
+}
+
+
+/* =========================
+   SUMMARY
+========================= */
+
+.summary{
+
+  display:grid;
+
+  grid-template-columns:
+    repeat(3,1fr);
+
+  gap:16px;
+
+  margin:28px 0;
+
+}
+
+
+.card{
+
+  background:#ffffff;
+
+  border:
+    1px solid #dce4dc;
+
+  border-radius:16px;
+
+  padding:19px;
+
+}
+
+
+.card small{
+
+  display:block;
+
+  color:#68766f;
+
+  margin-bottom:5px;
+
+}
+
+
+.card strong{
+
+  font-size:28px;
+
+  color:#14463a;
+
+}
+
+
+/* =========================
+   LIVE TRACKING
+========================= */
+
+.tracking{
+
+  background:#14463a;
+
+  color:#ffffff;
+
+  border-radius:18px;
+
+  padding:24px;
+
+  margin-bottom:25px;
+
+}
+
+
+.track-head{
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:
+    space-between;
+
+  gap:20px;
+
+  flex-wrap:wrap;
+
+}
+
+
+.track-head h2{
+
+  margin:0 0 4px;
+
+}
+
+
+.track-head p{
+
+  margin:0;
+
+  color:#cfe0d8;
+
+}
+
+
+.actions{
+
+  display:flex;
+
+  gap:9px;
+
+  flex-wrap:wrap;
+
+}
+
+
+.btn{
+
+  border:none;
+
+  border-radius:9px;
+
+  padding:11px 15px;
+
+  font-family:inherit;
+
+  font-weight:800;
+
+  cursor:pointer;
+
+}
+
+
+.btn-yellow{
+
+  background:#e9a319;
+
+  color:#17231f;
+
+}
+
+
+.btn-white{
+
+  background:#ffffff;
+
+  color:#14463a;
+
+}
+
+
+.btn-ghost{
+
+  background:
+    rgba(255,255,255,.1);
+
+  color:#ffffff;
+
+  border:
+    1px solid
+    rgba(255,255,255,.25);
+
+}
+
+
+.statusbar{
+
+  margin-top:16px;
+
+  background:
+    rgba(255,255,255,.09);
+
+  border-radius:10px;
+
+  padding:11px 13px;
+
+  color:#d9e7e0;
+
+}
+
+
+.stats{
+
+  display:grid;
+
+  grid-template-columns:
+    repeat(4,1fr);
+
+  gap:10px;
+
+  margin-top:16px;
+
+}
+
+
+.stat{
+
+  background:
+    rgba(255,255,255,.09);
+
+  border-radius:12px;
+
+  padding:14px;
+
+}
+
+
+.stat small{
+
+  display:block;
+
+  color:#cfe0d8;
+
+  margin-bottom:4px;
+
+}
+
+
+.stat strong{
+
+  font-size:22px;
+
+}
+
+
+.meta{
+
+  display:flex;
+
+  gap:8px;
+
+  flex-wrap:wrap;
+
+  margin-top:14px;
+
+}
+
+
+.chip{
+
+  background:
+    rgba(255,255,255,.09);
+
+  border-radius:30px;
+
+  padding:7px 10px;
+
+  font-size:13px;
+
+}
+
+
+/* =========================
+   JOBS
+========================= */
+
+.panel{
+
+  background:#ffffff;
+
+  border:
+    1px solid #dce4dc;
+
+  border-radius:18px;
+
+  padding:24px;
+
+}
+
+
+.panel h2{
+
+  margin-top:0;
+
+  color:#14463a;
+
+}
+
+
+.job{
+
+  border:
+    1px solid #dce4dc;
+
+  border-radius:15px;
+
+  padding:20px;
+
+  margin-top:15px;
+
+  background:#fcfdfc;
+
+}
+
+
+.job-top{
+
+  display:flex;
+
+  justify-content:
+    space-between;
+
+  gap:15px;
+
+}
+
+
+.job h3{
+
+  margin:0;
+
+  color:#14463a;
+
+  font-size:21px;
+
+}
+
+
+.muted{
+
+  color:#68766f;
+
+  margin-top:5px;
+
+}
+
+
+.qty{
+
+  background:#eaf5ee;
+
+  color:#17603a;
+
+  padding:10px 13px;
+
+  border-radius:12px;
+
+  font-weight:800;
+
+  height:max-content;
+
+}
+
+
+.route{
+
+  background:#f4f7f4;
+
+  border-radius:12px;
+
+  padding:15px;
+
+  margin-top:15px;
+
+  line-height:1.65;
+
+}
+
+
+.badge{
+
+  display:inline-block;
+
+  margin-top:12px;
+
+  padding:6px 10px;
+
+  border-radius:30px;
+
+  font-size:13px;
+
+  font-weight:800;
+
+  background:#ece6fb;
+
+  color:#633fad;
+
+}
+
+
+.job-actions{
+
+  display:flex;
+
+  gap:10px;
+
+  flex-wrap:wrap;
+
+  margin-top:16px;
+
+}
+
+
+.primary{
+
+  background:#14463a;
+
+  color:#ffffff;
+
+}
+
+
+.secondary{
+
+  background:#e9a319;
+
+  color:#17231f;
+
+  text-decoration:none;
+
+}
+
+
+.maplink{
+
+  background:#ffffff;
+
+  color:#14463a;
+
+  border:
+    1px solid #b8c8be;
+
+  text-decoration:none;
+
+}
+
+
+/* =========================
+   MESSAGE
+========================= */
+
+.message{
+
+  padding:13px 15px;
+
+  border-radius:10px;
+
+  margin-bottom:18px;
+
+  display:none;
+
+}
+
+
+.message.ok{
+
+  display:block;
+
+  background:#eaf5ee;
+
+  color:#17603a;
+
+  border:
+    1px solid #bad8c6;
+
+}
+
+
+.message.err{
+
+  display:block;
+
+  background:#fff0ed;
+
+  color:#a03526;
+
+  border:
+    1px solid #e6bbb2;
+
+}
+
+
+.empty{
+
+  text-align:center;
+
+  padding:45px 20px;
+
+  color:#748079;
+
+  border:
+    1px dashed #ccd7cf;
+
+  border-radius:13px;
+
+}
+
+
+/* =========================
+   MOBILE
+========================= */
+
+@media(max-width:850px){
+
+  nav a{
+    display:none;
+  }
+
+  .summary,
+  .stats{
+
+    grid-template-columns:
+      1fr 1fr;
+
+  }
+
+  h1{
+    font-size:38px;
+  }
+
+}
+
+
+@media(max-width:560px){
+
+  .page{
+    padding:35px 18px;
+  }
+
+  .summary,
+  .stats{
+
+    grid-template-columns:1fr;
+
+  }
+
+  .actions,
+  .job-actions{
+
+    flex-direction:column;
+
+  }
+
+  .btn,
+  .job-actions a{
+
+    width:100%;
+
+    text-align:center;
+
+  }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<!-- =========================
+     NAVBAR
+========================= -->
+
+<nav>
+
+  <div class="logo">
+
+    🍲 Surplus-to-Shelter
+
+  </div>
+
+
+  <a href="index.html">
+
+    Home
+
+  </a>
+
+
+  <a href="driver.html">
+
+    Driver
+
+  </a>
+
+
+  <a href="map.html">
+
+    Live Map
+
+  </a>
+
+
+  <a href="dashboard.html">
+
+    Impact
+
+  </a>
+
+
+  <div
+    class="user"
+    id="userName">
+
+    Driver
+
+  </div>
+
+
+  <button
+    class="logout"
+    id="logoutBtn">
+
+    Logout
+
+  </button>
+
+</nav>
+
+
+
+<main class="page">
+
+
+<div class="eyebrow">
+
+  🚗 Rescue Driver Portal
+
+</div>
+
+
+<h1>
+
+  Your rescue missions
+
+</h1>
+
+
+<p class="sub">
+
+  Accepted donations appear here.
+  Use live GPS or Demo Location to
+  calculate the optimized
+  Driver → Donor → Shelter route
+  and ETA.
+
+</p>
+
+
+
+<!-- =========================
+     SUMMARY
+========================= -->
+
+<section class="summary">
+
+
+  <div class="card">
+
+    <small>
+
+      Waiting for pickup
+
+    </small>
+
+    <strong id="waitingCount">
+
+      0
+
+    </strong>
+
+  </div>
+
+
+  <div class="card">
+
+    <small>
+
+      Currently carrying
+
+    </small>
+
+    <strong id="carryingCount">
+
+      0
+
+    </strong>
+
+  </div>
+
+
+  <div class="card">
+
+    <small>
+
+      Active rescue jobs
+
+    </small>
+
+    <strong id="totalCount">
+
+      0
+
+    </strong>
+
+  </div>
+
+
+</section>
+
+
+
+<!-- =========================
+     LIVE TRACKING
+========================= -->
+
+<section class="tracking">
+
+
+<div class="track-head">
+
+
+  <div>
+
+    <h2>
+
+      📡 Live Route Tracking
+
+    </h2>
+
+    <p id="missionText">
+
+      Waiting for an active rescue mission...
+
+    </p>
+
+  </div>
+
+
+  <div class="actions">
+
+
+    <button
+      class="btn btn-yellow"
+      id="startBtn">
+
+      ▶ Start Live Tracking
+
+    </button>
+
+
+    <button
+      class="btn btn-white"
+      id="stopBtn">
+
+      ■ Stop
+
+    </button>
+
+
+    <button
+      class="btn btn-ghost"
+      id="demoBtn">
+
+      🧪 Use Demo Location
+
+    </button>
+
+
+  </div>
+
+
+</div>
+
+
+
+<div
+  class="statusbar"
+  id="trackingStatus">
+
+  🟡 Live tracking is off.
+
+</div>
+
+
+
+<div class="stats">
+
+
+  <div class="stat">
+
+    <small>
+      ETA to Donor
+    </small>
+
+    <strong id="etaDonor">
+      —
+    </strong>
+
+  </div>
+
+
+  <div class="stat">
+
+    <small>
+      ETA to Shelter
+    </small>
+
+    <strong id="etaShelter">
+      —
+    </strong>
+
+  </div>
+
+
+  <div class="stat">
+
+    <small>
+      Total Route Time
+    </small>
+
+    <strong id="etaTotal">
+      —
+    </strong>
+
+  </div>
+
+
+  <div class="stat">
+
+    <small>
+      Route Distance
+    </small>
+
+    <strong id="routeDistance">
+      —
+    </strong>
+
+  </div>
+
+
+</div>
+
+
+
+<div class="meta">
+
+
+  <span
+    class="chip"
+    id="driverPos">
+
+    🚗 Driver:
+    location unavailable
+
+  </span>
+
+
+  <span
+    class="chip"
+    id="routeSource">
+
+    🧭 Route engine: —
+
+  </span>
+
+
+  <span
+    class="chip"
+    id="foodSafety">
+
+    ⏳ Food safety: —
+
+  </span>
+
+
+</div>
+
+
+</section>
+
+
+
+<div
+  id="message"
+  class="message">
+</div>
+
+
+
+<!-- =========================
+     JOB LIST
+========================= -->
+
+<section class="panel">
+
+
+<h2>
+
+  Priority pickup queue
+
+</h2>
+
+
+<div id="jobs">
+
+  <div class="empty">
+
+    Loading rescue jobs...
+
+  </div>
+
+</div>
+
+
+</section>
+
+
+</main>
+
+
+
+<script>
+
+
+// =====================================
+// BACKEND
+// =====================================
+
+const API =
+  "http://127.0.0.1:5000";
+
+
+
+let currentUser =
+  null;
+
+
+let orgs =
+  [];
+
+
+let jobs =
+  [];
+
+
+let activeMission =
+  null;
+
+
+let currentLat =
+  null;
+
+
+let currentLng =
+  null;
+
+
+let watchId =
+  null;
+
+
+let routeBusy =
+  false;
+
+
+
+// =====================================
+// SAFE HTML
+// =====================================
+
+function esc(value){
+
+  return String(
+    value ?? ""
+  )
+
+  .replace(
+    /[&<>"']/g,
+    ch => ({
+
+      "&":"&amp;",
+
+      "<":"&lt;",
+
+      ">":"&gt;",
+
+      '"':"&quot;",
+
+      "'":"&#39;"
+
+    }[ch])
+  );
+
+}
+
+
+
+// =====================================
+// API
+// =====================================
+
+async function api(
+  path,
+  options = {}
+){
+
+  const response =
+    await fetch(
+
+      API + path,
+
+      {
+
+        ...options,
+
+        credentials:
+          "include"
+
+      }
+
+    );
+
+
+  let data = {};
+
+
+  try{
+
+    data =
+      await response.json();
+
+  }
+
+  catch(error){}
+
+
+  if(
+    !response.ok
+  ){
+
+    throw new Error(
+
+      data.error
+      ||
+      data.message
+      ||
+      `Request failed (${response.status})`
+
+    );
+
+  }
+
+
+  return data;
+
+}
+
+
+
+function post(body){
+
+  return {
+
+    method:
+      "POST",
+
+    headers:{
+
+      "Content-Type":
+        "application/json"
+
+    },
+
+    body:
+      JSON.stringify(
+        body
+      )
+
+  };
+
+}
+
+
+
+// =====================================
+// MESSAGE
+// =====================================
+
+function showMessage(
+  text,
+  type = "ok"
+){
+
+  const box =
+    document.getElementById(
+      "message"
+    );
+
+
+  box.className =
+    "message "
+    +
+    type;
+
+
+  box.textContent =
+    text;
+
+}
+
+
+
+function clearMessage(){
+
+  const box =
+    document.getElementById(
+      "message"
+    );
+
+
+  box.className =
+    "message";
+
+
+  box.textContent =
+    "";
+
+}
+
+
+
+// =====================================
+// AUTH CHECK
+// =====================================
+
+async function checkDriver(){
+
+  try{
+
+    const data =
+      await api(
+        "/api/auth/me"
+      );
+
+
+    if(
+      !data.authenticated
+      ||
+      !data.user
+    ){
+
+      window.location.href =
+        "index.html";
+
+      return false;
+
+    }
+
+
+    if(
+      data.user.role
+      !==
+      "driver"
+    ){
+
+      window.location.href =
+        "index.html";
+
+      return false;
+
+    }
+
+
+    currentUser =
+      data.user;
+
+
+    document
+    .getElementById(
+      "userName"
+    )
+    .textContent =
+
+      "👤 "
+      +
+      currentUser.name;
+
+
+    return true;
+
+  }
+
+  catch(error){
+
+    window.location.href =
+      "index.html";
+
+    return false;
+
+  }
+
+}
+
+
+
+// =====================================
+// ACTIVE MISSION
+// =====================================
+
+function selectActiveMission(){
+
+  const carrying =
+    jobs.find(
+      job =>
+        job.status
+        ===
+        "picked_up"
+    );
+
+
+  activeMission =
+    carrying
+    ||
+    jobs[0]
+    ||
+    null;
+
+
+  const text =
+    document.getElementById(
+      "missionText"
+    );
+
+
+  if(
+    !activeMission
+  ){
+
+    text.textContent =
+      "No active rescue mission available.";
+
+
+    resetRouteStats();
+
+
+    return;
+
+  }
+
+
+  text.textContent =
+
+    `Rescue #${activeMission.id} • `
+    +
+    (
+      activeMission.status
+      ===
+      "picked_up"
+
+      ?
+
+      "Next: "
+      +
+      (
+        activeMission.matched_org_name
+        ||
+        "Shelter"
+      )
+
+      :
+
+      "Next: "
+      +
+      activeMission.donor_name
+    );
+
+}
+
+
+
+// =====================================
+// RESET ROUTE
+// =====================================
+
+function resetRouteStats(){
+
+  document.getElementById(
+    "etaDonor"
+  ).textContent = "—";
+
+
+  document.getElementById(
+    "etaShelter"
+  ).textContent = "—";
+
+
+  document.getElementById(
+    "etaTotal"
+  ).textContent = "—";
+
+
+  document.getElementById(
+    "routeDistance"
+  ).textContent = "—";
+
+
+  document.getElementById(
+    "routeSource"
+  ).textContent =
+    "🧭 Route engine: —";
+
+
+  document.getElementById(
+    "foodSafety"
+  ).textContent =
+    "⏳ Food safety: —";
+
+}
+
+
+
+// =====================================
+// GET MATCHED SHELTER
+// =====================================
+
+function orgFor(job){
+
+  return orgs.find(
+
+    org =>
+
+      String(org.id)
+
+      ===
+
+      String(
+        job.matched_org_id
+      )
+
+  );
+
+}
+
+
+
+// =====================================
+// GOOGLE MAPS LINK
+// =====================================
+
+function googleMapsLink(job){
+
+  const shelter =
+    orgFor(job);
+
+
+  let lat;
+
+  let lng;
+
+
+  if(
+    job.status
+    ===
+    "accepted"
+  ){
+
+    lat =
+      job.lat;
+
+    lng =
+      job.lng;
+
+  }
+
+  else if(
+    shelter
+  ){
+
+    lat =
+      shelter.lat;
+
+    lng =
+      shelter.lng;
+
+  }
+
+
+  if(
+    lat == null
+    ||
+    lng == null
+  ){
+
+    return "map.html";
+
+  }
+
+
+  return (
+
+    "https://www.google.com/maps/dir/?api=1"
+
+    +
+
+    "&destination="
+
+    +
+
+    encodeURIComponent(
+      lat
+      +
+      ","
+      +
+      lng
+    )
+
+    +
+
+    "&travelmode=driving"
+
+  );
+
+}
+
+
+
+// =====================================
+// RENDER JOBS
+// =====================================
+
+function renderJobs(){
+
+
+  document
+  .getElementById(
+    "waitingCount"
+  )
+  .textContent =
+
+    jobs.filter(
+      job =>
+        job.status
+        ===
+        "accepted"
+    ).length;
+
+
+
+  document
+  .getElementById(
+    "carryingCount"
+  )
+  .textContent =
+
+    jobs.filter(
+      job =>
+        job.status
+        ===
+        "picked_up"
+    ).length;
+
+
+
+  document
+  .getElementById(
+    "totalCount"
+  )
+  .textContent =
+    jobs.length;
+
+
+
+  const container =
+    document.getElementById(
+      "jobs"
+    );
+
+
+  if(
+    !jobs.length
+  ){
+
+    container.innerHTML = `
+
+      <div class="empty">
+
+        <div style="
+          font-size:40px;
+          margin-bottom:10px;
+        ">
+
+          🚗
+
+        </div>
+
+        <b>
+
+          No rescue jobs waiting
+
+        </b>
+
+        <br><br>
+
+        A job appears here after
+        a shelter accepts a matched donation.
+
+      </div>
+
+    `;
+
+
+    return;
+
+  }
+
+
+
+  container.innerHTML =
+
+    jobs
+
+    .map(
+      job => {
+
+
+        const shelter =
+          orgFor(job);
+
+
+        const accepted =
+          job.status
+          ===
+          "accepted";
+
+
+        return `
+
+          <div class="job">
+
+
+            <div class="job-top">
+
+
+              <div>
+
+                <h3>
+
+                  ${esc(
+                    job.donor_name
+                  )}
+
+                </h3>
+
+
+                <div class="muted">
+
+                  ${esc(
+                    job.food_description
+                  )}
+
+                </div>
+
+              </div>
+
+
+              <div class="qty">
+
+                ${esc(
+                  job.quantity_portions
+                )}
+
+                portions
+
+              </div>
+
+
+            </div>
+
+
+
+            <span class="badge">
+
+              ${
+                accepted
+                ?
+                "🍱 En Route to Pickup"
+                :
+                "🚗 En Route to Shelter"
+              }
+
+            </span>
+
+
+
+            <div class="route">
+
+
+              <b>
+
+                🍱 Pickup:
+
+              </b>
+
+              ${esc(
+                job.pickup_address
+              )}
+
+              <br>
+
+
+              <b>
+
+                🏠 Shelter:
+
+              </b>
+
+              ${esc(
+                job.matched_org_name
+                ||
+                "Assigned shelter"
+              )}
+
+
+              ${
+                shelter
+                &&
+                shelter.address
+
+                ?
+
+                "<br><span class='muted'>"
+                +
+                esc(
+                  shelter.address
+                )
+                +
+                "</span>"
+
+                :
+
+                ""
+              }
+
+
+            </div>
+
+
+
+            <div class="job-actions">
+
+
+              <button
+                class="btn primary status-btn"
+                data-id="${job.id}"
+                data-status="${
+                  accepted
+                  ?
+                  "picked_up"
+                  :
+                  "delivered"
+                }">
+
+                ${
+                  accepted
+                  ?
+                  "✓ Mark Picked Up"
+                  :
+                  "✓ Mark Delivered"
+                }
+
+              </button>
+
+
+
+              <a
+                class="btn secondary"
+                href="${esc(
+                  googleMapsLink(job)
+                )}"
+                target="_blank"
+                rel="noopener noreferrer">
+
+                🧭 Open Navigation
+
+              </a>
+
+
+
+              <a
+                class="btn maplink"
+                href="map.html">
+
+                🗺 Live Map
+
+              </a>
+
+
+            </div>
+
+
+          </div>
+
+        `;
+
+      }
+
+    )
+
+    .join("");
+
+}
+
+
+
+// =====================================
+// LOAD JOBS
+// =====================================
+
+async function loadJobs(){
+
+  try{
+
+
+    const [
+      donations,
+      shelterData
+    ] =
+
+      await Promise.all([
+
+        api(
+          "/api/donations"
+        ),
+
+        api(
+          "/api/orgs"
+        )
+
+      ]);
+
+
+
+    orgs =
+      shelterData;
+
+
+
+    jobs =
+
+      donations
+
+      .filter(
+        donation =>
+
+          donation.status
+          ===
+          "accepted"
+
+          ||
+
+          donation.status
+          ===
+          "picked_up"
+      )
+
+      .sort(
+        (a,b) => {
+
+
+          if(
+            a.status
+            ===
+            "picked_up"
+
+            &&
+
+            b.status
+            !==
+            "picked_up"
+          ){
+
+            return -1;
+
+          }
+
+
+          if(
+            b.status
+            ===
+            "picked_up"
+
+            &&
+
+            a.status
+            !==
+            "picked_up"
+          ){
+
+            return 1;
+
+          }
+
+
+          return (
+
+            new Date(
+              a.expires_at
+            )
+
+            -
+
+            new Date(
+              b.expires_at
+            )
+
+          );
+
+        }
+      );
+
+
+
+    selectActiveMission();
+
+
+    renderJobs();
+
+
+
+    if(
+      currentLat !== null
+      &&
+      activeMission
+    ){
+
+      await refreshRoute();
+
+    }
+
+
+  }
+
+  catch(error){
+
+
+    document
+    .getElementById(
+      "jobs"
+    )
+    .innerHTML = `
+
+      <div class="empty">
+
+        Could not load rescue jobs:
+
+        ${esc(
+          error.message
+        )}
+
+      </div>
+
+    `;
+
+  }
+
+}
+
+
+
+// =====================================
+// SAVE LOCATION
+// =====================================
+
+async function saveLocation(
+  lat,
+  lng
+){
+
+  return api(
+
+    "/api/driver/location",
+
+    post({
+
+      lat,
+      lng
+
+    })
+
+  );
+
+}
+
+
+
+// =====================================
+// LOCATION
+// =====================================
+
+async function useLocation(
+  lat,
+  lng,
+  source
+){
+
+  currentLat =
+    Number(lat);
+
+
+  currentLng =
+    Number(lng);
+
+
+  document
+  .getElementById(
+    "driverPos"
+  )
+  .textContent =
+
+    `🚗 ${source}: `
+    +
+    `${currentLat.toFixed(5)}, `
+    +
+    `${currentLng.toFixed(5)}`;
+
+
+
+  document
+  .getElementById(
+    "trackingStatus"
+  )
+  .textContent =
+
+    source === "GPS"
+
+    ?
+
+    "🟢 Live GPS tracking active."
+
+    :
+
+    "🟢 Demo driver location active.";
+
+
+
+  try{
+
+    await saveLocation(
+      currentLat,
+      currentLng
+    );
+
+  }
+
+  catch(error){
+
+    console.error(
+      error
+    );
+
+  }
+
+
+
+  await refreshRoute();
+
+}
+
+
+
+// =====================================
+// ROUTE + ETA
+// =====================================
+
+async function refreshRoute(){
+
+  if(
+    routeBusy
+    ||
+    !activeMission
+    ||
+    currentLat === null
+    ||
+    currentLng === null
+  ){
+
+    return;
+
+  }
+
+
+  routeBusy =
+    true;
+
+
+  try{
+
+
+    const route =
+
+      await api(
+
+        `/api/route/${activeMission.id}`
+
+        +
+
+        `?driver_lat=${encodeURIComponent(
+          currentLat
+        )}`
+
+        +
+
+        `&driver_lng=${encodeURIComponent(
+          currentLng
+        )}`
+
+      );
+
+
+
+    document
+    .getElementById(
+      "etaDonor"
+    )
+    .textContent =
+
+      route.eta.to_donor_min
+      ==
+      null
+
+      ?
+
+      "Picked Up ✓"
+
+      :
+
+      route.eta.to_donor_min
+      +
+      " min";
+
+
+
+    document
+    .getElementById(
+      "etaShelter"
+    )
+    .textContent =
+
+      route.eta
+      .donor_to_shelter_min
+
+      +
+      " min";
+
+
+
+    document
+    .getElementById(
+      "etaTotal"
+    )
+    .textContent =
+
+      route.eta
+      .total_route_time_min
+
+      +
+      " min";
+
+
+
+    document
+    .getElementById(
+      "routeDistance"
+    )
+    .textContent =
+
+      route.distance.total_km
+
+      +
+      " km";
+
+
+
+    document
+    .getElementById(
+      "routeSource"
+    )
+    .textContent =
+
+      route.routing_source
+      ===
+      "osrm"
+
+      ?
+
+      "🧭 Route engine: Road optimized"
+
+      :
+
+      "🧭 Route engine: Demo fallback";
+
+
+
+    document
+    .getElementById(
+      "foodSafety"
+    )
+    .textContent =
+
+      route.expiry.route_safe
+
+      ?
+
+      `✅ Route safe • ${route.expiry.priority} priority`
+
+      :
+
+      `⚠️ Expiry risk • ${route.expiry.priority} priority`;
+
+
+
+    clearMessage();
+
+
+  }
+
+  catch(error){
+
+
+    showMessage(
+
+      "Route error: "
+      +
+      error.message,
+
+      "err"
+
+    );
+
+  }
+
+
+  routeBusy =
+    false;
+
+}
+
+
+
+// =====================================
+// DEMO LOCATION
+// =====================================
+
+document
+.getElementById(
+  "demoBtn"
+)
+.addEventListener(
+  "click",
+  async () => {
+
+
+    if(
+      !activeMission
+    ){
+
+      showMessage(
+
+        "No accepted rescue mission available yet.",
+
+        "err"
+
+      );
+
+      return;
+
+    }
+
+
+    if(
+      activeMission.lat == null
+      ||
+      activeMission.lng == null
+    ){
+
+      showMessage(
+
+        "Donation coordinates are unavailable.",
+
+        "err"
+
+      );
+
+      return;
+
+    }
+
+
+
+    const demoLat =
+
+      Number(
+        activeMission.lat
+      )
+
+      +
+
+      0.012;
+
+
+
+    const demoLng =
+
+      Number(
+        activeMission.lng
+      )
+
+      +
+
+      0.010;
+
+
+
+    await useLocation(
+
+      demoLat,
+
+      demoLng,
+
+      "DEMO"
+
+    );
+
+  }
+);
+
+
+
+// =====================================
+// REAL GPS
+// =====================================
+
+document
+.getElementById(
+  "startBtn"
+)
+.addEventListener(
+  "click",
+  () => {
+
+
+    if(
+      !navigator.geolocation
+    ){
+
+      showMessage(
+
+        "GPS is not supported. Use Demo Location.",
+
+        "err"
+
+      );
+
+      return;
+
+    }
+
+
+    if(
+      watchId !== null
+    ){
+
+      return;
+
+    }
+
+
+
+    document
+    .getElementById(
+      "trackingStatus"
+    )
+    .textContent =
+
+      "🟡 Requesting location permission...";
+
+
+
+    watchId =
+
+      navigator.geolocation
+      .watchPosition(
+
+        position => {
+
+
+          useLocation(
+
+            position.coords.latitude,
+
+            position.coords.longitude,
+
+            "GPS"
+
+          );
+
+        },
+
+
+        error => {
+
+
+          console.error(
+            error
+          );
+
+
+          document
+          .getElementById(
+            "trackingStatus"
+          )
+          .textContent =
+
+            "🔴 GPS unavailable. Use Demo Location.";
+
+
+
+          if(
+            watchId !== null
+          ){
+
+            navigator.geolocation
+            .clearWatch(
+              watchId
+            );
+
+
+            watchId =
+              null;
+
+          }
+
+        },
+
+
+        {
+
+          enableHighAccuracy:
+            true,
+
+          maximumAge:
+            3000,
+
+          timeout:
+            10000
+
+        }
+
+      );
+
+  }
+);
+
+
+
+// =====================================
+// STOP GPS
+// =====================================
+
+document
+.getElementById(
+  "stopBtn"
+)
+.addEventListener(
+  "click",
+  () => {
+
+
+    if(
+      watchId !== null
+    ){
+
+      navigator.geolocation
+      .clearWatch(
+        watchId
+      );
+
+
+      watchId =
+        null;
+
+    }
+
+
+    document
+    .getElementById(
+      "trackingStatus"
+    )
+    .textContent =
+
+      "🟡 Live tracking stopped.";
+
+  }
+);
+
+
+
+// =====================================
+// PICKUP / DELIVERY
+// =====================================
+
+document
+.getElementById(
+  "jobs"
+)
+.addEventListener(
+  "click",
+  async event => {
+
+
+    const button =
+
+      event.target.closest(
+        ".status-btn"
+      );
+
+
+    if(
+      !button
+    ){
+
+      return;
+
+    }
+
+
+
+    const id =
+      Number(
+        button.dataset.id
+      );
+
+
+    const status =
+      button.dataset.status;
+
+
+
+    try{
+
+
+      button.textContent =
+        "Updating...";
+
+
+
+      await api(
+
+        `/api/donations/${id}/status`,
+
+        post({
+
+          status
+
+        })
+
+      );
+
+
+
+      showMessage(
+
+        status
+        ===
+        "picked_up"
+
+        ?
+
+        "Pickup confirmed ✓ Route will now continue to the shelter."
+
+        :
+
+        "Delivery completed ✓ Rescue successful.",
+
+        "ok"
+
+      );
+
+
+
+      await loadJobs();
+
+
+    }
+
+    catch(error){
+
+
+      showMessage(
+
+        error.message,
+
+        "err"
+
+      );
+
+
+      await loadJobs();
+
+    }
+
+  }
+);
+
+
+
+// =====================================
+// LOGOUT
+// =====================================
+
+document
+.getElementById(
+  "logoutBtn"
+)
+.addEventListener(
+  "click",
+  async () => {
+
+
+    try{
+
+      await api(
+
+        "/api/auth/logout",
+
+        {
+          method:"POST"
+        }
+
+      );
+
+    }
+
+    catch(error){}
+
+
+    window.location.href =
+      "index.html";
+
+  }
+);
+
+
+
+// =====================================
+// START PAGE
+// =====================================
+
+(async function start(){
+
+
+  const ok =
+    await checkDriver();
+
+
+  if(
+    !ok
+  ){
+
+    return;
+
+  }
+
+
+  await loadJobs();
+
+
+  setInterval(
+
+    loadJobs,
+
+    10000
+
+  );
+
+
+})();
+
+
+</script>
+
+
+</body>
+
+</html>

@@ -1,29 +1,3985 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1"><title>Shelter</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;700&display=swap">
-<link rel="stylesheet" href="style.css"></head><body>
-<script src="api.js"></script><script>navbar("shelter.html")</script>
-<main><h1>Incoming food</h1><p class="sub">Accept what you can take. Drivers only see food you accept.</p>
-<label for="org">Your shelter</label><select id="org"></select>
-<div id="list" style="margin-top:16px"></div><div id="err" class="msg err" hidden></div></main>
-<script>
-async function draw(){
-  try{
-    const items = (await getDonations(org.value)).filter(d => [S.MATCHED,S.ACCEPTED].includes(d.status));
-    err.hidden = true;
-    list.innerHTML = items.length ? items.map(d => { const t = timeLeft(d.expires_at); return `
-      <div class="job"><h3>${d.quantity_portions} portions: ${d.food_description}</h3>
-      <p>From ${d.donor_name}, ${d.pickup_address}${d.distance_km!=null?` (${d.distance_km} km)`:""}</p>
-      <span class="tag ${t.cls}">${t.text}</span>
-      ${d.status===S.MATCHED
-        ? `<br><button onclick="act(${d.id},'${S.ACCEPTED}')">Accept</button><button class="alt" onclick="act(${d.id},'${S.REJECTED}')">Reject</button>`
-        : `<span class="tag">Accepted, waiting for driver</span>`}</div>`}).join("")
-      : `<div class="empty">No incoming food right now. New matches appear here.</div>`;
-  }catch(e){ err.hidden=false; err.textContent = e.message + ". Is the backend running?"; }
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0"
+>
+
+<title data-i18n="shelter.pageTitle">
+  Shelter Portal | Surplus-to-Shelter
+</title>
+
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600;700;800&display=swap"
+>
+
+<style>
+
+*{
+  box-sizing:border-box;
 }
-async function act(id,s){ try{ await setStatus(id,s); draw(); }catch(e){ err.hidden=false; err.textContent=e.message; } }
-(async()=>{ try{ const orgs = await getOrgs();
-  org.innerHTML = orgs.map(o=>`<option value="${o.id}">${o.name}</option>`).join("");
-  org.onchange = draw; draw(); setInterval(draw,10000);
-}catch(e){ err.hidden=false; err.textContent="Could not load shelters: "+e.message; } })();
-</script></body></html>
+
+/* Auth check complete hone tak page hide rahega */
+body.auth-pending{
+  visibility:hidden;
+}
+
+body{
+  margin:0;
+
+  font-family:
+    "Bricolage Grotesque",
+    system-ui,
+    sans-serif;
+
+  background:#f4f7f3;
+
+  color:#17231f;
+}
+
+
+/* =====================================================
+   NAVBAR
+===================================================== */
+
+nav{
+  min-height:70px;
+
+  display:flex;
+
+  align-items:center;
+
+  padding:0 7%;
+
+  background:#ffffff;
+
+  border-bottom:
+    1px solid #dce4dc;
+
+  position:sticky;
+
+  top:0;
+
+  z-index:100;
+}
+
+.logo{
+  font-size:21px;
+
+  font-weight:800;
+
+  color:#14463a;
+
+  margin-right:auto;
+
+  white-space:nowrap;
+}
+
+nav a{
+  margin-left:25px;
+
+  text-decoration:none;
+
+  color:#34473f;
+
+  font-weight:600;
+
+  white-space:nowrap;
+}
+
+nav a:hover{
+  color:#2f7d5b;
+}
+
+nav a.active{
+  color:#14463a;
+
+  border-bottom:
+    2px solid #e9a319;
+
+  padding-bottom:5px;
+}
+
+
+/* =====================================================
+   LANGUAGE SELECTOR
+===================================================== */
+
+.language-control{
+  display:flex;
+
+  align-items:center;
+
+  gap:7px;
+
+  margin-left:22px;
+}
+
+.language-icon{
+  font-size:17px;
+}
+
+.language-selector{
+  width:auto;
+
+  min-width:105px;
+
+  padding:8px 10px;
+
+  border:
+    1px solid #cbd8cf;
+
+  border-radius:9px;
+
+  background:#ffffff;
+
+  color:#14463a;
+
+  font-family:inherit;
+
+  font-size:14px;
+
+  font-weight:700;
+
+  cursor:pointer;
+
+  outline:none;
+}
+
+.language-selector:focus{
+  border-color:#2f7d5b;
+
+  box-shadow:
+    0 0 0 3px rgba(47,125,91,.10);
+}
+
+
+/* =====================================================
+   PAGE
+===================================================== */
+
+.page{
+  max-width:1180px;
+
+  margin:auto;
+
+  padding:55px 7%;
+}
+
+
+/* =====================================================
+   HEADER
+===================================================== */
+
+.heading{
+  margin-bottom:30px;
+}
+
+.eyebrow{
+  display:inline-block;
+
+  padding:7px 13px;
+
+  background:#dff1e7;
+
+  color:#17603a;
+
+  border-radius:30px;
+
+  font-weight:700;
+
+  margin-bottom:14px;
+}
+
+.heading h1{
+  font-size:48px;
+
+  color:#14463a;
+
+  margin:0 0 10px;
+}
+
+.heading p{
+  font-size:18px;
+
+  color:#69766f;
+
+  margin:0;
+
+  max-width:760px;
+
+  line-height:1.55;
+}
+
+
+/* =====================================================
+   SHELTER SETTINGS
+===================================================== */
+
+.top-panel{
+  background:#ffffff;
+
+  border:
+    1px solid #dce4dc;
+
+  border-radius:18px;
+
+  padding:24px;
+
+  margin-bottom:25px;
+
+  box-shadow:
+    0 10px 30px rgba(20,70,58,.05);
+}
+
+.top-grid{
+  display:grid;
+
+  grid-template-columns:
+    1.3fr .65fr 1fr;
+
+  gap:20px;
+
+  align-items:end;
+}
+
+label{
+  display:block;
+
+  font-weight:700;
+
+  margin-bottom:8px;
+
+  color:#34473f;
+}
+
+select{
+  width:100%;
+
+  padding:14px;
+
+  border:
+    1px solid #cfd9d2;
+
+  border-radius:10px;
+
+  font:inherit;
+
+  background:#fbfcfb;
+
+  color:#17231f;
+
+  outline:none;
+}
+
+select:focus{
+  border-color:#2f7d5b;
+
+  box-shadow:
+    0 0 0 3px rgba(47,125,91,.10);
+}
+
+
+/* =====================================================
+   CAPACITY
+===================================================== */
+
+.capacity-box{
+  background:#eaf5ee;
+
+  border:
+    1px solid #c8dfd1;
+
+  padding:14px 17px;
+
+  border-radius:12px;
+}
+
+.capacity-box small{
+  color:#607068;
+}
+
+.capacity-box strong{
+  display:block;
+
+  font-size:26px;
+
+  color:#14463a;
+}
+
+
+/* =====================================================
+   NEED SETTINGS
+===================================================== */
+
+.need-box{
+  background:#f8faf8;
+
+  border:
+    1px solid #d7e1da;
+
+  border-radius:12px;
+
+  padding:14px;
+}
+
+.need-row{
+  display:flex;
+
+  gap:8px;
+}
+
+.need-row select{
+  flex:1;
+
+  padding:11px;
+}
+
+.need-save{
+  border:none;
+
+  background:#14463a;
+
+  color:white;
+
+  padding:10px 14px;
+
+  border-radius:9px;
+
+  font-family:inherit;
+
+  font-weight:800;
+
+  cursor:pointer;
+}
+
+.need-save:hover{
+  background:#2f7d5b;
+}
+
+.need-save:disabled{
+  opacity:.55;
+
+  cursor:not-allowed;
+}
+
+.need-current{
+  margin-top:9px;
+
+  display:flex;
+
+  align-items:center;
+
+  gap:7px;
+
+  color:#65736b;
+
+  font-size:13px;
+}
+
+
+/* =====================================================
+   NEED BADGES
+===================================================== */
+
+.need-badge{
+  display:inline-flex;
+
+  align-items:center;
+
+  padding:5px 9px;
+
+  border-radius:30px;
+
+  font-size:12px;
+
+  font-weight:800;
+}
+
+.need-low{
+  background:#e7f2eb;
+
+  color:#246441;
+}
+
+.need-medium{
+  background:#fff1cc;
+
+  color:#805b09;
+}
+
+.need-high{
+  background:#ffe0da;
+
+  color:#a13625;
+}
+
+
+/* =====================================================
+   CONTENT
+===================================================== */
+
+.content{
+  display:grid;
+
+  grid-template-columns:
+    1.4fr .6fr;
+
+  gap:26px;
+
+  align-items:start;
+}
+
+.panel{
+  background:#ffffff;
+
+  border:
+    1px solid #dce4dc;
+
+  border-radius:18px;
+
+  padding:25px;
+}
+
+.panel-head{
+  display:flex;
+
+  justify-content:space-between;
+
+  align-items:center;
+
+  gap:15px;
+
+  margin-bottom:20px;
+}
+
+.panel-head h2{
+  margin:0;
+
+  color:#14463a;
+}
+
+.live{
+  display:inline-flex;
+
+  align-items:center;
+
+  gap:6px;
+
+  padding:6px 10px;
+
+  background:#eaf5ee;
+
+  color:#17603a;
+
+  border-radius:30px;
+
+  font-size:13px;
+
+  font-weight:700;
+}
+
+.live-dot{
+  width:8px;
+
+  height:8px;
+
+  background:#2e9b57;
+
+  border-radius:50%;
+}
+
+
+/* =====================================================
+   DONATION CARD
+===================================================== */
+
+.job{
+  border:
+    1px solid #dce4dc;
+
+  border-radius:15px;
+
+  padding:20px;
+
+  margin-bottom:16px;
+
+  background:#fcfdfc;
+}
+
+.job:last-child{
+  margin-bottom:0;
+}
+
+.job-top{
+  display:flex;
+
+  justify-content:space-between;
+
+  gap:15px;
+
+  margin-bottom:12px;
+}
+
+.job h3{
+  margin:0;
+
+  font-size:20px;
+
+  color:#14463a;
+}
+
+.food{
+  color:#68766f;
+
+  margin-top:5px;
+}
+
+.qty{
+  min-width:85px;
+
+  text-align:center;
+
+  background:#eaf5ee;
+
+  color:#17603a;
+
+  border-radius:12px;
+
+  padding:9px 12px;
+
+  font-weight:800;
+}
+
+.qty span{
+  display:block;
+
+  font-size:12px;
+
+  font-weight:600;
+}
+
+.meta{
+  display:flex;
+
+  gap:10px;
+
+  flex-wrap:wrap;
+
+  margin:14px 0;
+}
+
+.meta-item{
+  background:#f2f5f2;
+
+  padding:8px 11px;
+
+  border-radius:8px;
+
+  font-size:14px;
+
+  color:#53645c;
+}
+
+
+/* =====================================================
+   PRIORITY
+===================================================== */
+
+.risk{
+  display:flex;
+
+  align-items:center;
+
+  justify-content:space-between;
+
+  gap:12px;
+
+  padding:12px 14px;
+
+  border-radius:11px;
+
+  margin:14px 0;
+
+  font-weight:800;
+}
+
+.risk-main{
+  display:flex;
+
+  align-items:center;
+
+  gap:9px;
+}
+
+.risk-icon{
+  font-size:21px;
+}
+
+.risk small{
+  display:block;
+
+  font-size:12px;
+
+  font-weight:500;
+
+  margin-top:2px;
+}
+
+.risk-time{
+  white-space:nowrap;
+
+  font-size:13px;
+}
+
+.risk-low{
+  background:#e4f3e9;
+
+  color:#17603a;
+
+  border:
+    1px solid #bcdcc7;
+}
+
+.risk-medium{
+  background:#fff2cc;
+
+  color:#7b5708;
+
+  border:
+    1px solid #efd58b;
+}
+
+.risk-high{
+  background:#ffe6cc;
+
+  color:#974d06;
+
+  border:
+    1px solid #efba82;
+}
+
+.risk-critical{
+  background:#ffe0db;
+
+  color:#a32d20;
+
+  border:
+    1px solid #e9a298;
+}
+
+.risk-expired{
+  background:#ecefed;
+
+  color:#5f6c65;
+
+  border:
+    1px solid #ccd4cf;
+}
+
+
+/* =====================================================
+   SMART SCORE
+===================================================== */
+
+.score-card{
+  margin-top:15px;
+
+  background:#14463a;
+
+  color:#ffffff;
+
+  border-radius:13px;
+
+  padding:17px;
+}
+
+.score-top{
+  display:flex;
+
+  justify-content:space-between;
+
+  align-items:flex-end;
+
+  gap:12px;
+
+  flex-wrap:wrap;
+}
+
+.score-title{
+  color:#cce3d8;
+
+  font-size:12px;
+
+  font-weight:700;
+}
+
+.score-number{
+  font-size:30px;
+
+  font-weight:800;
+
+  margin-top:3px;
+}
+
+.score-number span{
+  font-size:14px;
+
+  color:#d6e5de;
+}
+
+.score-label{
+  background:
+    rgba(255,255,255,.12);
+
+  padding:6px 10px;
+
+  border-radius:30px;
+
+  font-size:13px;
+
+  font-weight:700;
+}
+
+.score-track{
+  width:100%;
+
+  height:8px;
+
+  margin-top:12px;
+
+  background:
+    rgba(255,255,255,.18);
+
+  border-radius:30px;
+
+  overflow:hidden;
+}
+
+.score-fill{
+  height:100%;
+
+  background:#e9a319;
+
+  border-radius:30px;
+}
+
+.score-details{
+  display:grid;
+
+  grid-template-columns:
+    repeat(3,1fr);
+
+  gap:9px;
+
+  margin-top:12px;
+}
+
+.score-detail{
+  background:
+    rgba(255,255,255,.08);
+
+  padding:10px;
+
+  border-radius:8px;
+
+  font-size:12px;
+
+  color:#d6e5de;
+}
+
+.score-detail b{
+  display:block;
+
+  margin-top:4px;
+
+  color:#ffffff;
+
+  font-size:15px;
+}
+
+.score-explain{
+  margin-top:12px;
+
+  color:#cfe0d8;
+
+  font-size:12px;
+
+  line-height:1.5;
+}
+
+
+/* =====================================================
+   STATUS / ACTIONS
+===================================================== */
+
+.status{
+  display:inline-block;
+
+  padding:6px 11px;
+
+  border-radius:30px;
+
+  background:#ece6fb;
+
+  color:#633fad;
+
+  font-size:13px;
+
+  font-weight:700;
+}
+
+.actions{
+  display:flex;
+
+  gap:10px;
+
+  margin-top:17px;
+}
+
+.actions button{
+  padding:11px 18px;
+
+  border-radius:9px;
+
+  font-family:inherit;
+
+  font-weight:700;
+
+  font-size:15px;
+
+  cursor:pointer;
+
+  transition:.2s;
+}
+
+.accept{
+  border:none;
+
+  background:#14463a;
+
+  color:#ffffff;
+}
+
+.accept:hover{
+  background:#2f7d5b;
+}
+
+.reject{
+  background:#ffffff;
+
+  border:
+    1px solid #d36352;
+
+  color:#b23d2b;
+}
+
+.reject:hover{
+  background:#fff3f0;
+}
+
+.actions button:disabled{
+  opacity:.55;
+
+  cursor:not-allowed;
+}
+
+
+/* =====================================================
+   SIDE PANEL
+===================================================== */
+
+.side{
+  display:flex;
+
+  flex-direction:column;
+
+  gap:20px;
+}
+
+.info-card{
+  background:#14463a;
+
+  color:#ffffff;
+
+  border-radius:18px;
+
+  padding:25px;
+}
+
+.info-card h2{
+  margin:0 0 10px;
+}
+
+.info-card > p{
+  color:#dce9e3;
+
+  line-height:1.6;
+}
+
+.flow-item{
+  display:flex;
+
+  gap:12px;
+
+  padding:14px 0;
+
+  border-bottom:
+    1px solid rgba(255,255,255,.15);
+}
+
+.flow-item:last-child{
+  border-bottom:none;
+}
+
+.flow-icon{
+  width:38px;
+
+  height:38px;
+
+  min-width:38px;
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:center;
+
+  background:
+    rgba(255,255,255,.12);
+
+  border-radius:9px;
+}
+
+.flow-item b{
+  display:block;
+}
+
+.flow-item span{
+  font-size:14px;
+
+  color:#d5e4dd;
+}
+
+.notice{
+  background:#fff8e8;
+
+  border:
+    1px solid #efdcae;
+
+  border-radius:15px;
+
+  padding:20px;
+}
+
+.notice h3{
+  margin:0 0 8px;
+
+  color:#79530a;
+}
+
+.notice p{
+  margin:0;
+
+  line-height:1.65;
+
+  color:#6c614a;
+}
+
+
+/* =====================================================
+   MESSAGE
+===================================================== */
+
+.msg{
+  padding:14px 16px;
+
+  margin-bottom:18px;
+
+  border-radius:10px;
+
+  background:#eaf5ee;
+
+  border-left:
+    4px solid #2f7d5b;
+}
+
+.msg.err{
+  background:#fff0ed;
+
+  border-color:#c8452d;
+
+  color:#9c3324;
+}
+
+.empty{
+  text-align:center;
+
+  padding:45px 20px;
+
+  color:#748079;
+
+  border:
+    1px dashed #ccd7cf;
+
+  border-radius:13px;
+}
+
+
+/* =====================================================
+   MOBILE
+===================================================== */
+
+@media(max-width:1000px){
+
+  nav{
+    padding-left:4%;
+    padding-right:4%;
+  }
+
+  nav a{
+    margin-left:14px;
+  }
+
+  .language-control{
+    margin-left:14px;
+  }
+
+}
+
+@media(max-width:950px){
+
+  .top-grid{
+    grid-template-columns:
+      1fr 1fr;
+  }
+
+  .need-box{
+    grid-column:
+      1 / -1;
+  }
+
+}
+
+@media(max-width:850px){
+
+  nav a{
+    display:none;
+  }
+
+  .language-control{
+    margin-left:auto;
+  }
+
+  .content{
+    grid-template-columns:1fr;
+  }
+
+  .heading h1{
+    font-size:38px;
+  }
+
+}
+
+@media(max-width:520px){
+
+  .page{
+    padding:35px 18px;
+  }
+
+  .top-grid{
+    grid-template-columns:1fr;
+  }
+
+  .need-box{
+    grid-column:auto;
+  }
+
+  .panel{
+    padding:18px;
+  }
+
+  .job-top{
+    flex-direction:column;
+  }
+
+  .qty{
+    width:fit-content;
+  }
+
+  .score-details{
+    grid-template-columns:1fr;
+  }
+
+  .risk{
+    align-items:flex-start;
+
+    flex-direction:column;
+  }
+
+  .actions{
+    flex-direction:column;
+  }
+
+  .actions button{
+    width:100%;
+  }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<!-- =====================================================
+     NAVBAR
+===================================================== -->
+
+<nav>
+
+  <div class="logo">
+    🍲 Surplus-to-Shelter
+  </div>
+
+  <a
+    href="index.html"
+    data-i18n="nav.home">
+    Home
+  </a>
+
+  <a
+    href="donor.html"
+    data-i18n="nav.donate">
+    Donate
+  </a>
+
+  <a
+    href="shelter.html"
+    class="active"
+    data-i18n="nav.shelter">
+    Shelter
+  </a>
+
+  <a
+    href="driver.html"
+    data-i18n="nav.driver">
+    Driver
+  </a>
+
+  <a
+    href="map.html"
+    data-i18n="nav.map">
+    Live Map
+  </a>
+
+  <a
+    href="dashboard.html"
+    data-i18n="nav.impact">
+    Impact
+  </a>
+
+
+  <div class="language-control">
+
+    <span class="language-icon">
+      🌐
+    </span>
+
+    <select
+      class="language-selector"
+      aria-label="Language">
+
+      <option value="en">
+        English
+      </option>
+
+      <option value="hi">
+        हिन्दी
+      </option>
+
+    </select>
+
+  </div>
+
+</nav>
+
+
+<main class="page">
+
+
+<!-- =====================================================
+     HEADER
+===================================================== -->
+
+<section class="heading">
+
+  <div
+    class="eyebrow"
+    data-i18n="shelter.eyebrow">
+
+    🏠 Shelter Portal
+
+  </div>
+
+  <h1 data-i18n="shelter.title">
+
+    Incoming food rescues
+
+  </h1>
+
+  <p data-i18n="shelter.description">
+
+    Set your shelter's current food need,
+    review Smart Matches and prioritize
+    time-sensitive donations before their
+    safety window expires.
+
+  </p>
+
+</section>
+
+
+<!-- =====================================================
+     SHELTER SETTINGS
+===================================================== -->
+
+<section class="top-panel">
+
+  <div class="top-grid">
+
+
+    <div>
+
+      <label
+        for="org"
+        data-i18n="shelter.select">
+
+        Select your shelter
+
+      </label>
+
+      <select
+        id="org"
+        disabled>
+
+        <option data-i18n="shelter.loadingShelters">
+
+          Loading shelters...
+
+        </option>
+
+      </select>
+
+    </div>
+
+
+    <div class="capacity-box">
+
+      <small data-i18n="shelter.capacity">
+
+        Shelter capacity
+
+      </small>
+
+      <strong id="capacity">
+        —
+      </strong>
+
+      <small data-i18n="shelter.portions">
+
+        portions
+
+      </small>
+
+    </div>
+
+
+    <div class="need-box">
+
+      <label
+        for="needLevel"
+        data-i18n="shelter.currentFoodNeed">
+
+        Current food need
+
+      </label>
+
+
+      <div class="need-row">
+
+        <select id="needLevel">
+
+          <option
+            value="1"
+            data-i18n="shelter.lowNeed">
+
+            Low Need
+
+          </option>
+
+          <option
+            value="2"
+            data-i18n="shelter.mediumNeed">
+
+            Medium Need
+
+          </option>
+
+          <option
+            value="3"
+            data-i18n="shelter.highNeed">
+
+            High Need
+
+          </option>
+
+        </select>
+
+
+        <button
+          id="saveNeedBtn"
+          class="need-save"
+          data-i18n="common.update">
+
+          Update
+
+        </button>
+
+      </div>
+
+
+      <div class="need-current">
+
+        <span data-i18n="shelter.current">
+          Current:
+        </span>
+
+        <span
+          id="currentNeedBadge"
+          class="need-badge need-medium">
+
+          Medium
+
+        </span>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<div
+  id="note"
+  class="msg"
+  hidden
+  aria-live="polite">
+</div>
+
+
+<div
+  id="err"
+  class="msg err"
+  hidden
+  role="alert">
+</div>
+
+
+<div class="content">
+
+
+<!-- =====================================================
+     MATCHED DONATIONS
+===================================================== -->
+
+<section class="panel">
+
+  <div class="panel-head">
+
+    <h2 data-i18n="shelter.matchedDonations">
+
+      Matched donations
+
+    </h2>
+
+
+    <div class="live">
+
+      <span class="live-dot"></span>
+
+      <span data-i18n="common.live">
+        Live
+      </span>
+
+    </div>
+
+  </div>
+
+
+  <div id="list">
+
+    <div
+      class="empty"
+      data-i18n="shelter.loadingDonations">
+
+      Loading incoming donations...
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- =====================================================
+     RIGHT SIDE
+===================================================== -->
+
+<aside class="side">
+
+
+<section class="info-card">
+
+  <h2 data-i18n="shelter.needAware">
+
+    Need-aware Smart Match
+
+  </h2>
+
+  <p data-i18n="shelter.needAwareDesc">
+
+    The matching engine now considers four
+    factors instead of simply selecting the
+    nearest shelter.
+
+  </p>
+
+
+  <div class="flow-item">
+
+    <div class="flow-icon">
+      📍
+    </div>
+
+    <div>
+
+      <b data-i18n="shelter.distance">
+        Distance — 40 points
+      </b>
+
+      <span data-i18n="shelter.distanceDesc">
+
+        Nearby eligible shelters receive
+        stronger routing scores.
+
+      </span>
+
+    </div>
+
+  </div>
+
+
+  <div class="flow-item">
+
+    <div class="flow-icon">
+      📦
+    </div>
+
+    <div>
+
+      <b data-i18n="shelter.capacityFit">
+        Capacity fit — 25 points
+      </b>
+
+      <span data-i18n="shelter.capacityDesc">
+
+        Shelter must have enough capacity
+        for the food donation.
+
+      </span>
+
+    </div>
+
+  </div>
+
+
+  <div class="flow-item">
+
+    <div class="flow-icon">
+      🛡
+    </div>
+
+    <div>
+
+      <b data-i18n="shelter.foodSafety">
+        Food safety — 15 points
+      </b>
+
+      <span data-i18n="shelter.safetyDesc">
+
+        Delivery must remain inside
+        the safe-use window.
+
+      </span>
+
+    </div>
+
+  </div>
+
+
+  <div class="flow-item">
+
+    <div class="flow-icon">
+      ❤️
+    </div>
+
+    <div>
+
+      <b data-i18n="shelter.recipientNeed">
+        Recipient need — 20 points
+      </b>
+
+      <span data-i18n="shelter.needDesc">
+
+        Shelters reporting higher current
+        need receive additional priority.
+
+      </span>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+<section class="notice">
+
+  <h3 data-i18n="shelter.needGuideTitle">
+
+    💡 How to use Need Level
+
+  </h3>
+
+  <p>
+
+    <b data-i18n="shelter.guideHighTitle">
+      High:
+    </b>
+
+    <span data-i18n="shelter.guideHigh">
+      food is urgently required.
+    </span>
+
+    <br>
+
+    <b data-i18n="shelter.guideMediumTitle">
+      Medium:
+    </b>
+
+    <span data-i18n="shelter.guideMedium">
+      normal current demand.
+    </span>
+
+    <br>
+
+    <b data-i18n="shelter.guideLowTitle">
+      Low:
+    </b>
+
+    <span data-i18n="shelter.guideLow">
+      shelter currently has adequate supply.
+    </span>
+
+    <br><br>
+
+    <span data-i18n="shelter.futureMatchNote">
+
+      Updating this value affects future Smart Matches.
+
+    </span>
+
+  </p>
+
+</section>
+
+
+</aside>
+
+</div>
+
+</main>
+
+
+<script src="i18n.js"></script>
+
+<script>
+// =====================================================
+// STANDALONE SHELTER API + AUTH
+// No dependency on api.js/auth.js
+// =====================================================
+
+const API_BASE_SHELTER = "http://127.0.0.1:5000";
+
+const S = {
+  POSTED: "posted",
+  MATCHED: "matched",
+  ACCEPTED: "accepted",
+  PICKED_UP: "picked_up",
+  DELIVERED: "delivered",
+  REJECTED: "rejected",
+  EXPIRED: "expired"
+};
+
+function post(body = {}) {
+  return {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify(body)
+  };
+}
+
+async function call(path, options = {}) {
+  const response = await fetch(API_BASE_SHELTER + path, {
+    ...options,
+    credentials: "include"
+  });
+
+  let data = {};
+  try {
+    data = await response.json();
+  } catch (e) {}
+
+  if (!response.ok) {
+    throw new Error(data.error || data.message || `Request failed (${response.status})`);
+  }
+
+  return data;
+}
+
+async function getOrgs() {
+  return call("/api/orgs");
+}
+
+async function getDonations(orgId) {
+  let path = "/api/donations";
+  if (orgId) {
+    path += "?org_id=" + encodeURIComponent(orgId);
+  }
+  return call(path);
+}
+
+async function setStatus(id, status) {
+  return call(`/api/donations/${id}/status`, post({ status }));
+}
+
+function minutesUntilExpiry(expiresAt) {
+  const expiry = new Date(expiresAt).getTime();
+  if (!Number.isFinite(expiry)) return 0;
+  return Math.ceil((expiry - Date.now()) / 60000);
+}
+
+function riskInfo(expiresAt) {
+  const minutes = minutesUntilExpiry(expiresAt);
+
+  if (minutes <= 0) {
+    return { level: "EXPIRED", cls: "risk-expired", icon: "⚫", minutes };
+  }
+  if (minutes < 30) {
+    return { level: "CRITICAL", cls: "risk-critical", icon: "🚨", minutes };
+  }
+  if (minutes < 60) {
+    return { level: "HIGH", cls: "risk-high", icon: "🔥", minutes };
+  }
+  if (minutes < 120) {
+    return { level: "MEDIUM", cls: "risk-medium", icon: "⚠️", minutes };
+  }
+  return { level: "LOW", cls: "risk-low", icon: "✅", minutes };
+}
+
+function priorityScore(expiresAt) {
+  const minutes = minutesUntilExpiry(expiresAt);
+  if (minutes <= 0) return 100;
+  if (minutes < 30) return 90;
+  if (minutes < 60) return 70;
+  if (minutes < 120) return 50;
+  return 20;
+}
+
+function rolePage(role) {
+  if (role === "donor") return "donor.html";
+  if (role === "driver") return "driver.html";
+  if (role === "shelter") return "shelter.html";
+  return "index.html";
+}
+
+async function getShelterUser() {
+  try {
+    const response = await fetch(API_BASE_SHELTER + "/api/auth/me", {
+      credentials: "include"
+    });
+
+    if (!response.ok) {
+      window.location.href = "index.html";
+      return null;
+    }
+
+    const data = await response.json();
+    const user = data.user;
+
+    if (!data.authenticated || !user) {
+      window.location.href = "index.html";
+      return null;
+    }
+
+    if (user.role !== "shelter") {
+      window.location.href = rolePage(user.role);
+      return null;
+    }
+
+    return user;
+  } catch (error) {
+    console.error("Shelter auth check failed:", error);
+    window.location.href = "index.html";
+    return null;
+  }
+}
+</script>
+
+
+<script>
+
+/* =====================================================
+   EXTRA SHELTER TRANSLATIONS
+===================================================== */
+
+Object.assign(
+  translations.en,
+  {
+
+    "shelter.pageTitle":
+      "Shelter Portal | Surplus-to-Shelter",
+
+    "shelter.loadingShelters":
+      "Loading shelters...",
+
+    "shelter.loadingDonations":
+      "Loading incoming donations...",
+
+    "shelter.distanceDesc":
+      "Nearby eligible shelters receive stronger routing scores.",
+
+    "shelter.capacityDesc":
+      "Shelter must have enough capacity for the food donation.",
+
+    "shelter.safetyDesc":
+      "Delivery must remain inside the safe-use window.",
+
+    "shelter.needDesc":
+      "Shelters reporting higher current need receive additional priority.",
+
+    "shelter.needGuideTitle":
+      "💡 How to use Need Level",
+
+    "shelter.guideHighTitle":
+      "High:",
+
+    "shelter.guideHigh":
+      "food is urgently required.",
+
+    "shelter.guideMediumTitle":
+      "Medium:",
+
+    "shelter.guideMedium":
+      "normal current demand.",
+
+    "shelter.guideLowTitle":
+      "Low:",
+
+    "shelter.guideLow":
+      "shelter currently has adequate supply.",
+
+    "shelter.futureMatchNote":
+      "Updating this value affects future Smart Matches.",
+
+    "shelter.saving":
+      "Saving...",
+
+    "shelter.needUpdateError":
+      "Could not update shelter need: {message}",
+
+    "shelter.scoreTitle":
+      "NEED-AWARE SMART RESCUE SCORE",
+
+    "shelter.estimatedArrival":
+      "Estimated arrival",
+
+    "shelter.safetyMargin":
+      "Safety margin",
+
+    "shelter.recipientNeedLabel":
+      "Recipient need",
+
+    "shelter.scoreUses":
+      "Score uses:",
+
+    "shelter.factorDistance":
+      "Distance 40",
+
+    "shelter.factorCapacity":
+      "Capacity 25",
+
+    "shelter.factorSafety":
+      "Safety 15",
+
+    "shelter.factorNeed":
+      "Recipient Need 20",
+
+    "shelter.scoreExcellent":
+      "Excellent Match",
+
+    "shelter.scoreStrong":
+      "Strong Match",
+
+    "shelter.scoreGood":
+      "Good Match",
+
+    "shelter.scoreSafe":
+      "Safe Match",
+
+    "shelter.distanceUnavailable":
+      "Distance unavailable",
+
+    "shelter.kmAway":
+      "{distance} km away",
+
+    "shelter.minutes":
+      "{count} min",
+
+    "shelter.portionCard":
+      "portions",
+
+    "shelter.recipientNeedColon":
+      "Recipient Need:",
+
+    "shelter.oldScore":
+      "This donation was created before the latest Smart Match scoring model was enabled.",
+
+    "shelter.selectShelter":
+      "Select a shelter to see incoming food.",
+
+    "shelter.acceptedMessage":
+      "Donation accepted ✓ The rescue is now available to a driver.",
+
+    "shelter.rematchedMessage":
+      "Donation rejected. 🔄 Smart Match automatically reassigned it to {name}.",
+
+    "shelter.rejectedMessage":
+      "Donation rejected. No other eligible shelter was available.",
+
+    "shelter.updateDonationError":
+      "Could not update donation: {message}",
+
+    "shelter.refreshError":
+      "Could not refresh donations: {message}",
+
+    "shelter.couldNotLoadDonations":
+      "Could not load donations.",
+
+    "shelter.noShelters":
+      "No shelters found",
+
+    "shelter.unavailable":
+      "Unavailable",
+
+    "shelter.loadSheltersError":
+      "Could not load shelters: {message}",
+
+    "shelter.priorityLow":
+      "LOW PRIORITY",
+
+    "shelter.priorityMedium":
+      "MEDIUM PRIORITY",
+
+    "shelter.priorityHigh":
+      "HIGH PRIORITY",
+
+    "shelter.priorityCritical":
+      "CRITICAL PRIORITY",
+
+    "shelter.priorityExpired":
+      "EXPIRED",
+
+    "shelter.riskLow":
+      "More than 2 hours remain.",
+
+    "shelter.riskMedium":
+      "1–2 hours remain.",
+
+    "shelter.riskHigh":
+      "Less than 1 hour remains.",
+
+    "shelter.riskCritical":
+      "Less than 30 minutes remain. Handle immediately.",
+
+    "shelter.riskExpired":
+      "The food safety window has expired.",
+
+    "shelter.minutesLeft":
+      "{count} min left",
+
+    "shelter.hoursMinutesLeft":
+      "{hours} hr {minutes} min left",
+
+    "shelter.hoursLeft":
+      "{hours} hr left",
+
+    "shelter.expired":
+      "Expired"
+
+  }
+);
+
+
+Object.assign(
+  translations.hi,
+  {
+
+    "shelter.pageTitle":
+      "आश्रय केंद्र पोर्टल | Surplus-to-Shelter",
+
+    "shelter.loadingShelters":
+      "आश्रय केंद्र लोड हो रहे हैं...",
+
+    "shelter.loadingDonations":
+      "आने वाले भोजन दान लोड हो रहे हैं...",
+
+    "shelter.distanceDesc":
+      "पास के योग्य आश्रय केंद्रों को अधिक रूटिंग स्कोर मिलता है।",
+
+    "shelter.capacityDesc":
+      "आश्रय केंद्र में पूरे भोजन दान को लेने की पर्याप्त क्षमता होनी चाहिए।",
+
+    "shelter.safetyDesc":
+      "डिलीवरी भोजन के सुरक्षित समय के भीतर पूरी होनी चाहिए।",
+
+    "shelter.needDesc":
+      "जिन आश्रय केंद्रों को अधिक भोजन की आवश्यकता है उन्हें अतिरिक्त प्राथमिकता मिलती है।",
+
+    "shelter.needGuideTitle":
+      "💡 आवश्यकता स्तर का उपयोग कैसे करें",
+
+    "shelter.guideHighTitle":
+      "अधिक:",
+
+    "shelter.guideHigh":
+      "भोजन की तुरंत आवश्यकता है।",
+
+    "shelter.guideMediumTitle":
+      "मध्यम:",
+
+    "shelter.guideMedium":
+      "वर्तमान मांग सामान्य है।",
+
+    "shelter.guideLowTitle":
+      "कम:",
+
+    "shelter.guideLow":
+      "आश्रय केंद्र में अभी पर्याप्त भोजन उपलब्ध है।",
+
+    "shelter.futureMatchNote":
+      "इस मान को अपडेट करने से भविष्य के स्मार्ट मैच प्रभावित होंगे।",
+
+    "shelter.saving":
+      "सेव हो रहा है...",
+
+    "shelter.needUpdateError":
+      "आश्रय की आवश्यकता अपडेट नहीं हो सकी: {message}",
+
+    "shelter.scoreTitle":
+      "आवश्यकता-आधारित स्मार्ट बचाव स्कोर",
+
+    "shelter.estimatedArrival":
+      "अनुमानित पहुँच समय",
+
+    "shelter.safetyMargin":
+      "सुरक्षा समय",
+
+    "shelter.recipientNeedLabel":
+      "प्राप्तकर्ता की आवश्यकता",
+
+    "shelter.scoreUses":
+      "स्कोर में शामिल:",
+
+    "shelter.factorDistance":
+      "दूरी 40",
+
+    "shelter.factorCapacity":
+      "क्षमता 25",
+
+    "shelter.factorSafety":
+      "सुरक्षा 15",
+
+    "shelter.factorNeed":
+      "प्राप्तकर्ता आवश्यकता 20",
+
+    "shelter.scoreExcellent":
+      "उत्कृष्ट मैच",
+
+    "shelter.scoreStrong":
+      "मजबूत मैच",
+
+    "shelter.scoreGood":
+      "अच्छा मैच",
+
+    "shelter.scoreSafe":
+      "सुरक्षित मैच",
+
+    "shelter.distanceUnavailable":
+      "दूरी उपलब्ध नहीं है",
+
+    "shelter.kmAway":
+      "{distance} किमी दूर",
+
+    "shelter.minutes":
+      "{count} मिनट",
+
+    "shelter.portionCard":
+      "भोजन",
+
+    "shelter.recipientNeedColon":
+      "प्राप्तकर्ता आवश्यकता:",
+
+    "shelter.oldScore":
+      "यह भोजन दान नवीनतम स्मार्ट मैच स्कोरिंग मॉडल लागू होने से पहले बनाया गया था।",
+
+    "shelter.selectShelter":
+      "आने वाला भोजन देखने के लिए आश्रय केंद्र चुनें।",
+
+    "shelter.acceptedMessage":
+      "भोजन दान स्वीकार किया गया ✓ अब यह बचाव कार्य ड्राइवर के लिए उपलब्ध है।",
+
+    "shelter.rematchedMessage":
+      "भोजन दान अस्वीकार किया गया। 🔄 स्मार्ट मैच ने इसे स्वतः {name} को पुनः आवंटित कर दिया।",
+
+    "shelter.rejectedMessage":
+      "भोजन दान अस्वीकार किया गया। कोई अन्य योग्य आश्रय केंद्र उपलब्ध नहीं था।",
+
+    "shelter.updateDonationError":
+      "भोजन दान अपडेट नहीं हो सका: {message}",
+
+    "shelter.refreshError":
+      "भोजन दान रिफ्रेश नहीं हो सके: {message}",
+
+    "shelter.couldNotLoadDonations":
+      "भोजन दान लोड नहीं हो सके।",
+
+    "shelter.noShelters":
+      "कोई आश्रय केंद्र नहीं मिला",
+
+    "shelter.unavailable":
+      "उपलब्ध नहीं",
+
+    "shelter.loadSheltersError":
+      "आश्रय केंद्र लोड नहीं हो सके: {message}",
+
+    "shelter.priorityLow":
+      "कम प्राथमिकता",
+
+    "shelter.priorityMedium":
+      "मध्यम प्राथमिकता",
+
+    "shelter.priorityHigh":
+      "उच्च प्राथमिकता",
+
+    "shelter.priorityCritical":
+      "अत्यंत जरूरी",
+
+    "shelter.priorityExpired":
+      "समय समाप्त",
+
+    "shelter.riskLow":
+      "2 घंटे से अधिक समय बाकी है।",
+
+    "shelter.riskMedium":
+      "1 से 2 घंटे का समय बाकी है।",
+
+    "shelter.riskHigh":
+      "1 घंटे से कम समय बाकी है।",
+
+    "shelter.riskCritical":
+      "30 मिनट से कम समय बाकी है। तुरंत कार्रवाई करें।",
+
+    "shelter.riskExpired":
+      "भोजन का सुरक्षित समय समाप्त हो चुका है।",
+
+    "shelter.minutesLeft":
+      "{count} मिनट बाकी",
+
+    "shelter.hoursMinutesLeft":
+      "{hours} घंटा {minutes} मिनट बाकी",
+
+    "shelter.hoursLeft":
+      "{hours} घंटे बाकी",
+
+    "shelter.expired":
+      "समय समाप्त"
+
+  }
+);
+
+
+/* =====================================================
+   ELEMENTS
+===================================================== */
+
+const orgSelect =
+  document.getElementById(
+    "org"
+  );
+
+const list =
+  document.getElementById(
+    "list"
+  );
+
+const note =
+  document.getElementById(
+    "note"
+  );
+
+const err =
+  document.getElementById(
+    "err"
+  );
+
+const capacity =
+  document.getElementById(
+    "capacity"
+  );
+
+const needLevel =
+  document.getElementById(
+    "needLevel"
+  );
+
+const saveNeedBtn =
+  document.getElementById(
+    "saveNeedBtn"
+  );
+
+const currentNeedBadge =
+  document.getElementById(
+    "currentNeedBadge"
+  );
+
+
+let busy =
+  false;
+
+let first =
+  true;
+
+let allOrgs =
+  [];
+
+let currentNoteState =
+  null;
+
+let currentErrorState =
+  null;
+
+
+/* =====================================================
+   SAFE HTML
+===================================================== */
+
+const esc = value =>
+
+  String(
+    value ?? ""
+  )
+
+  .replace(
+
+    /[&<>"']/g,
+
+    character => ({
+
+      "&":"&amp;",
+      "<":"&lt;",
+      ">":"&gt;",
+      '"':"&quot;",
+      "'":"&#39;"
+
+    }[character])
+
+  );
+
+
+/* =====================================================
+   BASIC MESSAGE
+===================================================== */
+
+function show(
+  element,
+  text
+){
+
+  element.hidden =
+    !text;
+
+  element.textContent =
+    text || "";
+
+}
+
+
+/* =====================================================
+   TRANSLATED MESSAGES
+===================================================== */
+
+function setNote(
+  key,
+  variables = {}
+){
+
+  if(!key){
+
+    currentNoteState =
+      null;
+
+    show(
+      note,
+      ""
+    );
+
+    return;
+
+  }
+
+  currentNoteState = {
+    key,
+    variables
+  };
+
+  show(
+    note,
+    t(
+      key,
+      variables
+    )
+  );
+
+}
+
+
+function setError(
+  key,
+  variables = {}
+){
+
+  if(!key){
+
+    currentErrorState =
+      null;
+
+    show(
+      err,
+      ""
+    );
+
+    return;
+
+  }
+
+  currentErrorState = {
+    key,
+    variables
+  };
+
+  show(
+    err,
+    t(
+      key,
+      variables
+    )
+  );
+
+}
+
+
+function refreshMessages(){
+
+  if(currentNoteState){
+
+    show(
+      note,
+      t(
+        currentNoteState.key,
+        currentNoteState.variables
+      )
+    );
+
+  }
+
+  if(currentErrorState){
+
+    show(
+      err,
+      t(
+        currentErrorState.key,
+        currentErrorState.variables
+      )
+    );
+
+  }
+
+}
+
+
+/* =====================================================
+   NEED HELPERS
+===================================================== */
+
+function needLabel(level){
+
+  const value =
+    Number(level);
+
+  if(value === 3){
+
+    return t(
+      "need.high"
+    );
+
+  }
+
+  if(value === 1){
+
+    return t(
+      "need.low"
+    );
+
+  }
+
+  return t(
+    "need.medium"
+  );
+
+}
+
+
+function needClass(level){
+
+  const value =
+    Number(level);
+
+  if(value === 3){
+
+    return "need-high";
+
+  }
+
+  if(value === 1){
+
+    return "need-low";
+
+  }
+
+  return "need-medium";
+
+}
+
+
+function needIcon(level){
+
+  const value =
+    Number(level);
+
+  if(value === 3){
+
+    return "❤️";
+
+  }
+
+  if(value === 1){
+
+    return "🌿";
+
+  }
+
+  return "🍽";
+
+}
+
+
+/* =====================================================
+   SCORE LABEL
+===================================================== */
+
+function getScoreLabel(score){
+
+  if(score >= 80){
+
+    return t(
+      "shelter.scoreExcellent"
+    );
+
+  }
+
+  if(score >= 65){
+
+    return t(
+      "shelter.scoreStrong"
+    );
+
+  }
+
+  if(score >= 50){
+
+    return t(
+      "shelter.scoreGood"
+    );
+
+  }
+
+  return t(
+    "shelter.scoreSafe"
+  );
+
+}
+
+
+/* =====================================================
+   PRIORITY TRANSLATION
+===================================================== */
+
+function translatedPriority(level){
+
+  const value =
+    String(
+      level || ""
+    )
+    .toUpperCase();
+
+
+  if(value === "CRITICAL"){
+
+    return t(
+      "shelter.priorityCritical"
+    );
+
+  }
+
+  if(value === "HIGH"){
+
+    return t(
+      "shelter.priorityHigh"
+    );
+
+  }
+
+  if(value === "MEDIUM"){
+
+    return t(
+      "shelter.priorityMedium"
+    );
+
+  }
+
+  if(value === "LOW"){
+
+    return t(
+      "shelter.priorityLow"
+    );
+
+  }
+
+  return t(
+    "shelter.priorityExpired"
+  );
+
+}
+
+
+/* =====================================================
+   PRIORITY MESSAGE
+===================================================== */
+
+function translatedRiskMessage(level){
+
+  const value =
+    String(
+      level || ""
+    )
+    .toUpperCase();
+
+
+  if(value === "CRITICAL"){
+
+    return t(
+      "shelter.riskCritical"
+    );
+
+  }
+
+  if(value === "HIGH"){
+
+    return t(
+      "shelter.riskHigh"
+    );
+
+  }
+
+  if(value === "MEDIUM"){
+
+    return t(
+      "shelter.riskMedium"
+    );
+
+  }
+
+  if(value === "LOW"){
+
+    return t(
+      "shelter.riskLow"
+    );
+
+  }
+
+  return t(
+    "shelter.riskExpired"
+  );
+
+}
+
+
+/* =====================================================
+   LOCALIZED TIME LEFT
+===================================================== */
+
+function localizedTimeLeft(
+  expiresAt
+){
+
+  const difference =
+    new Date(
+      expiresAt
+    ).getTime()
+
+    -
+
+    Date.now();
+
+
+  if(
+    !Number.isFinite(
+      difference
+    )
+    ||
+    difference <= 0
+  ){
+
+    return t(
+      "shelter.expired"
+    );
+
+  }
+
+
+  const totalMinutes =
+    Math.ceil(
+      difference / 60000
+    );
+
+
+  if(totalMinutes < 60){
+
+    return t(
+      "shelter.minutesLeft",
+      {
+        count:
+          totalMinutes
+      }
+    );
+
+  }
+
+
+  const hours =
+    Math.floor(
+      totalMinutes / 60
+    );
+
+
+  const minutes =
+    totalMinutes % 60;
+
+
+  if(minutes === 0){
+
+    return t(
+      "shelter.hoursLeft",
+      {
+        hours
+      }
+    );
+
+  }
+
+
+  return t(
+    "shelter.hoursMinutesLeft",
+    {
+      hours,
+      minutes
+    }
+  );
+
+}
+
+
+/* =====================================================
+   LOAD SHELTERS
+===================================================== */
+
+async function loadOrgs(){
+
+  return await getOrgs();
+
+}
+
+
+/* =====================================================
+   CURRENT SHELTER
+===================================================== */
+
+function currentOrg(){
+
+  return allOrgs.find(
+
+    org =>
+
+      String(
+        org.id
+      )
+
+      ===
+
+      String(
+        orgSelect.value
+      )
+
+  );
+
+}
+
+
+/* =====================================================
+   UPDATE SHELTER INFORMATION
+===================================================== */
+
+function updateShelterInfo(){
+
+  const org =
+    currentOrg();
+
+
+  if(!org){
+
+    capacity.textContent =
+      "—";
+
+    return;
+
+  }
+
+
+  capacity.textContent =
+    org.capacity_portions
+    ??
+    "—";
+
+
+  const level =
+    Number(
+      org.need_level
+      ||
+      2
+    );
+
+
+  needLevel.value =
+    String(level);
+
+
+  currentNeedBadge.className =
+    "need-badge "
+    +
+    needClass(level);
+
+
+  currentNeedBadge.textContent =
+    needLabel(level);
+
+}
+
+
+/* =====================================================
+   SAVE NEED LEVEL
+===================================================== */
+
+saveNeedBtn.onclick =
+async () => {
+
+
+  const org =
+    currentOrg();
+
+
+  if(
+    !org
+    ||
+    busy
+  ){
+
+    return;
+
+  }
+
+
+  busy =
+    true;
+
+
+  saveNeedBtn.disabled =
+    true;
+
+
+  saveNeedBtn.textContent =
+    t(
+      "shelter.saving"
+    );
+
+
+  try{
+
+
+    const result =
+      await call(
+
+        `/api/orgs/${org.id}/need`,
+
+        post({
+
+          need_level:
+            Number(
+              needLevel.value
+            )
+
+        })
+
+      );
+
+
+    org.need_level =
+      result.need_level;
+
+
+    updateShelterInfo();
+
+
+    setError(
+      ""
+    );
+
+
+    setNote(
+
+      "shelter.needUpdated",
+
+      {
+        name:
+          org.name,
+
+        need:
+          needLabel(
+            result.need_level
+          )
+      }
+
+    );
+
+
+  }
+
+  catch(error){
+
+
+    setNote(
+      ""
+    );
+
+
+    setError(
+
+      "shelter.needUpdateError",
+
+      {
+        message:
+          error.message
+      }
+
+    );
+
+  }
+
+
+  busy =
+    false;
+
+
+  saveNeedBtn.disabled =
+    false;
+
+
+  saveNeedBtn.textContent =
+    t(
+      "common.update"
+    );
+
+};
+
+
+/* =====================================================
+   DONATION CARD
+===================================================== */
+
+function card(donation){
+
+
+  const risk =
+    riskInfo(
+      donation.expires_at
+    );
+
+
+  const distance =
+
+    donation.distance_km
+    !=
+    null
+
+    ?
+
+    t(
+      "shelter.kmAway",
+      {
+        distance:
+          esc(
+            donation.distance_km
+          )
+      }
+    )
+
+    :
+
+    t(
+      "shelter.distanceUnavailable"
+    );
+
+
+  const score =
+
+    donation.match_score
+    !=
+    null
+
+    ?
+
+    Number(
+      donation.match_score
+    )
+
+    :
+
+    null;
+
+
+  const matchedNeed =
+
+    Number(
+      donation.matched_org_need_level
+      ||
+      2
+    );
+
+
+  /* =================================================
+     PRIORITY
+  ================================================= */
+
+  const riskBlock = `
+
+    <div class="risk ${risk.cls}">
+
+
+      <div class="risk-main">
+
+
+        <div class="risk-icon">
+
+          ${risk.icon}
+
+        </div>
+
+
+        <div>
+
+          ${translatedPriority(
+            risk.level
+          )}
+
+          <small>
+
+            ${translatedRiskMessage(
+              risk.level
+            )}
+
+          </small>
+
+        </div>
+
+
+      </div>
+
+
+      <div class="risk-time">
+
+        ${localizedTimeLeft(
+          donation.expires_at
+        )}
+
+      </div>
+
+
+    </div>
+
+  `;
+
+
+  /* =================================================
+     SCORE
+  ================================================= */
+
+  const scoreBlock =
+
+    score != null
+
+    ?
+
+    `
+
+    <div class="score-card">
+
+
+      <div class="score-top">
+
+
+        <div>
+
+
+          <div class="score-title">
+
+            ${t(
+              "shelter.scoreTitle"
+            )}
+
+          </div>
+
+
+          <div class="score-number">
+
+            ${score.toFixed(1)}
+
+            <span>
+
+              / 100
+
+            </span>
+
+          </div>
+
+
+        </div>
+
+
+        <div class="score-label">
+
+          ${getScoreLabel(
+            score
+          )}
+
+        </div>
+
+
+      </div>
+
+
+      <div class="score-track">
+
+        <div
+          class="score-fill"
+          style="
+            width:
+            ${Math.min(
+              score,
+              100
+            )}%;
+          ">
+        </div>
+
+      </div>
+
+
+      <div class="score-details">
+
+
+        <div class="score-detail">
+
+          🚗
+          ${t(
+            "shelter.estimatedArrival"
+          )}
+
+          <b>
+
+            ${
+              donation.eta_minutes
+              !=
+              null
+
+              ?
+
+              t(
+                "shelter.minutes",
+                {
+                  count:
+                    esc(
+                      donation.eta_minutes
+                    )
+                }
+              )
+
+              :
+
+              "—"
+            }
+
+          </b>
+
+        </div>
+
+
+        <div class="score-detail">
+
+          🛡
+          ${t(
+            "shelter.safetyMargin"
+          )}
+
+          <b>
+
+            ${
+              donation.safety_margin_min
+              !=
+              null
+
+              ?
+
+              t(
+                "shelter.minutes",
+                {
+                  count:
+                    esc(
+                      donation.safety_margin_min
+                    )
+                }
+              )
+
+              :
+
+              "—"
+            }
+
+          </b>
+
+        </div>
+
+
+        <div class="score-detail">
+
+          ${needIcon(
+            matchedNeed
+          )}
+
+          ${t(
+            "shelter.recipientNeedLabel"
+          )}
+
+          <b>
+
+            ${needLabel(
+              matchedNeed
+            )}
+
+          </b>
+
+        </div>
+
+
+      </div>
+
+
+      <div class="score-explain">
+
+        ${t(
+          "shelter.scoreUses"
+        )}
+
+        <b>
+          ${t(
+            "shelter.factorDistance"
+          )}
+        </b>
+
+        +
+
+        <b>
+          ${t(
+            "shelter.factorCapacity"
+          )}
+        </b>
+
+        +
+
+        <b>
+          ${t(
+            "shelter.factorSafety"
+          )}
+        </b>
+
+        +
+
+        <b>
+          ${t(
+            "shelter.factorNeed"
+          )}
+        </b>.
+
+      </div>
+
+
+    </div>
+
+    `
+
+    :
+
+    `
+
+    <div style="
+      margin-top:15px;
+      padding:12px;
+      background:#f3f5f4;
+      border-radius:9px;
+      color:#68766f;
+      font-size:13px;
+    ">
+
+      ${t(
+        "shelter.oldScore"
+      )}
+
+    </div>
+
+    `;
+
+
+  /* =================================================
+     ACTIONS
+  ================================================= */
+
+  const actions =
+
+    donation.status
+    ===
+    S.MATCHED
+
+    ?
+
+    `
+
+    <div class="actions">
+
+
+      <button
+        class="accept"
+        data-id="${esc(
+          donation.id
+        )}"
+        data-s="${S.ACCEPTED}">
+
+        ${t(
+          "shelter.accept"
+        )}
+
+      </button>
+
+
+      <button
+        class="reject"
+        data-id="${esc(
+          donation.id
+        )}"
+        data-s="${S.REJECTED}">
+
+        ${t(
+          "shelter.reject"
+        )}
+
+      </button>
+
+
+    </div>
+
+    `
+
+    :
+
+    `
+
+    <div style="
+      margin-top:16px;
+    ">
+
+      <span class="status">
+
+        ${t(
+          "shelter.waitingDriver"
+        )}
+
+      </span>
+
+    </div>
+
+    `;
+
+
+  return `
+
+    <div class="job">
+
+
+      <div class="job-top">
+
+
+        <div>
+
+          <h3>
+
+            ${esc(
+              donation.donor_name
+            )}
+
+          </h3>
+
+
+          <div class="food">
+
+            ${esc(
+              donation.food_description
+            )}
+
+          </div>
+
+        </div>
+
+
+        <div class="qty">
+
+          ${esc(
+            donation.quantity_portions
+          )}
+
+          <span>
+
+            ${t(
+              "shelter.portionCard"
+            )}
+
+          </span>
+
+        </div>
+
+
+      </div>
+
+
+      <div class="meta">
+
+
+        <div class="meta-item">
+
+          📍
+
+          ${esc(
+            donation.pickup_address
+          )}
+
+        </div>
+
+
+        <div class="meta-item">
+
+          🚗
+
+          ${distance}
+
+        </div>
+
+
+        <div class="meta-item">
+
+          ${needIcon(
+            matchedNeed
+          )}
+
+          ${t(
+            "shelter.recipientNeedColon"
+          )}
+
+          <b>
+
+            ${needLabel(
+              matchedNeed
+            )}
+
+          </b>
+
+        </div>
+
+
+      </div>
+
+
+      ${riskBlock}
+
+      ${scoreBlock}
+
+      ${actions}
+
+
+    </div>
+
+  `;
+
+}
+
+
+/* =====================================================
+   DRAW
+===================================================== */
+
+async function draw(){
+
+
+  if(busy){
+
+    return;
+
+  }
+
+
+  if(
+    !orgSelect.value
+  ){
+
+    list.innerHTML = `
+
+      <div class="empty">
+
+        ${t(
+          "shelter.selectShelter"
+        )}
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  try{
+
+
+    const donations =
+
+      (
+        await getDonations(
+          orgSelect.value
+        )
+      )
+
+      .filter(
+
+        donation =>
+
+          [
+            S.MATCHED,
+            S.ACCEPTED
+          ]
+
+          .includes(
+            donation.status
+          )
+
+      )
+
+      .sort(
+
+        (a,b) => {
+
+
+          const priorityDifference =
+
+            priorityScore(
+              b.expires_at
+            )
+
+            -
+
+            priorityScore(
+              a.expires_at
+            );
+
+
+          if(
+            priorityDifference
+            !==
+            0
+          ){
+
+            return priorityDifference;
+
+          }
+
+
+          return (
+
+            new Date(
+              a.expires_at
+            )
+
+            -
+
+            new Date(
+              b.expires_at
+            )
+
+          );
+
+        }
+
+      );
+
+
+    setError(
+      ""
+    );
+
+
+    list.innerHTML =
+
+      donations.length
+
+      ?
+
+      donations
+      .map(
+        card
+      )
+      .join("")
+
+      :
+
+      `
+
+      <div class="empty">
+
+        <div style="
+          font-size:38px;
+          margin-bottom:10px;
+        ">
+
+          🌿
+
+        </div>
+
+        <b>
+
+          ${t(
+            "shelter.noFood"
+          )}
+
+        </b>
+
+        <br><br>
+
+        ${t(
+          "shelter.noFoodDesc"
+        )}
+
+      </div>
+
+      `;
+
+
+  }
+
+  catch(error){
+
+
+    setError(
+
+      "shelter.refreshError",
+
+      {
+        message:
+          error.message
+      }
+
+    );
+
+
+    if(first){
+
+      list.innerHTML = `
+
+        <div class="empty">
+
+          ${t(
+            "shelter.couldNotLoadDonations"
+          )}
+
+        </div>
+
+      `;
+
+    }
+
+  }
+
+
+  first =
+    false;
+
+}
+
+
+/* =====================================================
+   ACCEPT / REJECT
+===================================================== */
+
+list.onclick =
+async event => {
+
+
+  const button =
+
+    event.target.closest(
+      "button[data-id]"
+    );
+
+
+  if(
+    !button
+    ||
+    busy
+  ){
+
+    return;
+
+  }
+
+
+  busy =
+    true;
+
+
+  const job =
+    button.closest(
+      ".job"
+    );
+
+
+  job
+  .querySelectorAll(
+    "button"
+  )
+  .forEach(
+
+    currentButton =>
+
+      currentButton.disabled =
+        true
+
+  );
+
+
+  const accepting =
+
+    button.dataset.s
+    ===
+    S.ACCEPTED;
+
+
+  button.textContent =
+
+    accepting
+
+    ?
+
+    t(
+      "shelter.accepting"
+    )
+
+    :
+
+    t(
+      "shelter.rejecting"
+    );
+
+
+  const id =
+    Number(
+      button.dataset.id
+    );
+
+
+  try{
+
+
+    const result =
+      await setStatus(
+
+        id,
+
+        button.dataset.s
+
+      );
+
+
+    setError(
+      ""
+    );
+
+
+    if(accepting){
+
+
+      setNote(
+        "shelter.acceptedMessage"
+      );
+
+
+    }
+
+    else if(
+      result.rematched
+    ){
+
+
+      setNote(
+
+        "shelter.rematchedMessage",
+
+        {
+          name:
+            result.matched_org_name
+        }
+
+      );
+
+
+    }
+
+    else{
+
+
+      setNote(
+        "shelter.rejectedMessage"
+      );
+
+
+    }
+
+
+  }
+
+  catch(error){
+
+
+    setNote(
+      ""
+    );
+
+
+    setError(
+
+      "shelter.updateDonationError",
+
+      {
+        message:
+          error.message
+      }
+
+    );
+
+
+  }
+
+
+  busy =
+    false;
+
+
+  draw();
+
+};
+
+
+/* =====================================================
+   LANGUAGE CHANGE
+===================================================== */
+
+window.addEventListener(
+  "languagechange",
+  () => {
+
+
+    updateShelterInfo();
+
+
+    refreshMessages();
+
+
+    if(busy){
+
+      saveNeedBtn.textContent =
+        t(
+          "shelter.saving"
+        );
+
+    }
+
+    else{
+
+      saveNeedBtn.textContent =
+        t(
+          "common.update"
+        );
+
+    }
+
+
+    if(!busy){
+
+      draw();
+
+    }
+
+  }
+);
+
+
+/* =====================================================
+   START PAGE
+===================================================== */
+
+(async () => {
+
+
+  const loggedInShelter =
+    await getShelterUser();
+
+
+  if(!loggedInShelter){
+
+    return;
+
+  }
+
+
+  try{
+
+
+    allOrgs =
+      await loadOrgs();
+
+
+    orgSelect.innerHTML =
+
+      allOrgs.length
+
+      ?
+
+      allOrgs
+      .map(
+
+        org => `
+
+          <option
+            value="${esc(
+              org.id
+            )}">
+
+            ${esc(
+              org.name
+            )}
+
+          </option>
+
+        `
+
+      )
+      .join("")
+
+      :
+
+      `
+
+      <option value="">
+
+        ${t(
+          "shelter.noShelters"
+        )}
+
+      </option>
+
+      `;
+
+
+    orgSelect.disabled =
+      !allOrgs.length;
+
+
+    updateShelterInfo();
+
+
+    orgSelect.onchange =
+      () => {
+
+
+        first =
+          true;
+
+
+        setNote(
+          ""
+        );
+
+
+        updateShelterInfo();
+
+
+        list.innerHTML = `
+
+          <div class="empty">
+
+            ${t(
+              "common.loading"
+            )}
+
+          </div>
+
+        `;
+
+
+        draw();
+
+      };
+
+
+    draw();
+
+
+    setInterval(
+
+      draw,
+
+      10000
+
+    );
+
+
+  }
+
+  catch(error){
+
+
+    orgSelect.innerHTML = `
+
+      <option value="">
+
+        ${t(
+          "shelter.unavailable"
+        )}
+
+      </option>
+
+    `;
+
+
+    setError(
+
+      "shelter.loadSheltersError",
+
+      {
+        message:
+          error.message
+      }
+
+    );
+
+
+    list.innerHTML =
+      "";
+
+  }
+
+
+})();
+
+</script>
+
+
+</body>
+
+</html> 

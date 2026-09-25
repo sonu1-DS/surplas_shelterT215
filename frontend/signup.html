@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8">
+
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0"
+>
+
+<title>Create Account | Surplus-to-Shelter</title>
+
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600;700;800&display=swap"
+>
+
+<style>
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  min-height:100vh;
+
+  font-family:
+    "Bricolage Grotesque",
+    system-ui,
+    sans-serif;
+
+  background:#f4f7f3;
+  color:#17231f;
+}
+
+
+/* =========================
+   NAVBAR
+========================= */
+
+nav{
+  min-height:70px;
+
+  display:flex;
+  align-items:center;
+
+  padding:0 7%;
+
+  background:#ffffff;
+
+  border-bottom:1px solid #dce4dc;
+}
+
+.logo{
+  font-size:21px;
+  font-weight:800;
+  color:#14463a;
+
+  margin-right:auto;
+}
+
+.back-link{
+  text-decoration:none;
+
+  color:#34473f;
+
+  font-weight:700;
+}
+
+
+/* =========================
+   PAGE
+========================= */
+
+.page{
+  min-height:calc(100vh - 70px);
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  padding:45px 20px;
+}
+
+
+/* =========================
+   CARD
+========================= */
+
+.card{
+  width:100%;
+  max-width:480px;
+
+  background:#ffffff;
+
+  border:1px solid #dce4dc;
+
+  border-radius:20px;
+
+  padding:32px;
+
+  box-shadow:
+    0 18px 50px rgba(20,70,58,.08);
+}
+
+.eyebrow{
+  display:inline-block;
+
+  background:#dff1e7;
+  color:#17603a;
+
+  padding:7px 12px;
+
+  border-radius:30px;
+
+  font-size:13px;
+  font-weight:800;
+
+  margin-bottom:15px;
+}
+
+h1{
+  margin:0 0 8px;
+
+  color:#14463a;
+
+  font-size:36px;
+}
+
+.subtitle{
+  margin:0 0 27px;
+
+  color:#6b7871;
+
+  line-height:1.55;
+}
+
+
+/* =========================
+   FORM
+========================= */
+
+.form-group{
+  margin-bottom:18px;
+}
+
+label{
+  display:block;
+
+  margin-bottom:7px;
+
+  color:#34473f;
+
+  font-size:14px;
+  font-weight:700;
+}
+
+input,
+select{
+  width:100%;
+
+  padding:13px 14px;
+
+  border:1px solid #cad6ce;
+
+  border-radius:10px;
+
+  background:#ffffff;
+
+  font-family:inherit;
+  font-size:15px;
+
+  color:#17231f;
+
+  outline:none;
+}
+
+input:focus,
+select:focus{
+  border-color:#2f7d5b;
+
+  box-shadow:
+    0 0 0 3px rgba(47,125,91,.10);
+}
+
+.password-note{
+  margin-top:6px;
+
+  font-size:12px;
+
+  color:#89948e;
+}
+
+
+/* =========================
+   BUTTON
+========================= */
+
+.submit-btn{
+  width:100%;
+
+  border:none;
+
+  border-radius:11px;
+
+  background:#14463a;
+
+  color:#ffffff;
+
+  padding:14px 18px;
+
+  font-family:inherit;
+
+  font-size:15px;
+  font-weight:800;
+
+  cursor:pointer;
+
+  margin-top:4px;
+}
+
+.submit-btn:hover{
+  background:#2f7d5b;
+}
+
+.submit-btn:disabled{
+  opacity:.6;
+  cursor:not-allowed;
+}
+
+
+/* =========================
+   MESSAGE
+========================= */
+
+.message{
+  display:none;
+
+  padding:12px 14px;
+
+  border-radius:10px;
+
+  margin-bottom:18px;
+
+  font-size:14px;
+
+  line-height:1.5;
+}
+
+.message.error{
+  display:block;
+
+  background:#fff0ed;
+
+  border:1px solid #e6b8af;
+
+  color:#a2392a;
+}
+
+.message.success{
+  display:block;
+
+  background:#eaf5ee;
+
+  border:1px solid #bdd8c7;
+
+  color:#17603a;
+}
+
+
+/* =========================
+   LOGIN LINK
+========================= */
+
+.login-line{
+  text-align:center;
+
+  margin-top:21px;
+
+  color:#6f7b75;
+
+  font-size:14px;
+}
+
+.login-line a{
+  color:#17603a;
+
+  font-weight:800;
+
+  text-decoration:none;
+}
+
+
+/* =========================
+   MOBILE
+========================= */
+
+@media(max-width:520px){
+
+  nav{
+    padding:0 18px;
+  }
+
+  .logo{
+    font-size:18px;
+  }
+
+  .card{
+    padding:25px 20px;
+  }
+
+  h1{
+    font-size:31px;
+  }
+
+}
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<nav>
+
+  <div class="logo">
+    🍲 Surplus-to-Shelter
+  </div>
+
+  <a
+    href="index.html"
+    class="back-link">
+    ← Home
+  </a>
+
+</nav>
+
+
+<main class="page">
+
+  <section class="card">
+
+
+    <div class="eyebrow">
+      🔐 Secure Account
+    </div>
+
+
+    <h1>
+      Create your account
+    </h1>
+
+
+    <p class="subtitle">
+      Join the food rescue network as a donor,
+      driver or shelter.
+    </p>
+
+
+    <div
+      id="message"
+      class="message">
+    </div>
+
+
+    <form id="signupForm">
+
+
+      <div class="form-group">
+
+        <label for="name">
+          Full name
+        </label>
+
+        <input
+          id="name"
+          type="text"
+          placeholder="Enter your name"
+          required
+        >
+
+      </div>
+
+
+      <div class="form-group">
+
+        <label for="email">
+          Email address
+        </label>
+
+        <input
+          id="email"
+          type="email"
+          placeholder="you@example.com"
+          required
+        >
+
+      </div>
+
+
+      <div class="form-group">
+
+        <label for="password">
+          Password
+        </label>
+
+        <input
+          id="password"
+          type="password"
+          placeholder="Create a password"
+          minlength="6"
+          required
+        >
+
+        <div class="password-note">
+          Minimum 6 characters
+        </div>
+
+      </div>
+
+
+      <div class="form-group">
+
+        <label for="role">
+          Select your role
+        </label>
+
+        <select
+          id="role"
+          required>
+
+          <option value="">
+            Choose a role
+          </option>
+
+          <option value="donor">
+            Donor
+          </option>
+
+          <option value="driver">
+            Driver
+          </option>
+
+          <option value="shelter">
+            Shelter
+          </option>
+
+        </select>
+
+      </div>
+
+
+      <button
+        id="submitBtn"
+        type="submit"
+        class="submit-btn">
+
+        Create Account
+
+      </button>
+
+
+    </form>
+
+
+    <div class="login-line">
+
+      Already have an account?
+
+      <a href="login.html">
+        Login
+      </a>
+
+    </div>
+
+
+  </section>
+
+</main>
+
+
+<script src="config.js"></script>
+
+
+<script>
+
+const signupForm =
+  document.getElementById(
+    "signupForm"
+  );
+
+const submitBtn =
+  document.getElementById(
+    "submitBtn"
+  );
+
+const message =
+  document.getElementById(
+    "message"
+  );
+
+
+function showMessage(
+  text,
+  type
+){
+
+  message.textContent =
+    text;
+
+  message.className =
+    "message " + type;
+
+}
+
+
+signupForm.addEventListener(
+  "submit",
+  async event => {
+
+    event.preventDefault();
+
+
+    const name =
+      document
+      .getElementById("name")
+      .value
+      .trim();
+
+
+    const email =
+      document
+      .getElementById("email")
+      .value
+      .trim();
+
+
+    const password =
+      document
+      .getElementById("password")
+      .value;
+
+
+    const role =
+      document
+      .getElementById("role")
+      .value;
+
+
+    submitBtn.disabled =
+      true;
+
+
+    submitBtn.textContent =
+      "Creating account...";
+
+
+    message.className =
+      "message";
+
+
+    try{
+
+
+      const response = await fetch(
+        API_BASE + "/api/auth/register",
+        {
+          method:"POST",
+
+          headers:{
+            "Content-Type":
+              "application/json"
+          },
+
+          credentials:"include",
+
+          body:JSON.stringify({
+            name,
+            email,
+            password,
+            role
+          })
+        }
+      );
+
+
+      const result =
+        await response.json();
+
+
+      if(!response.ok){
+
+        throw new Error(
+          result.error
+          ||
+          "Could not create account"
+        );
+
+      }
+
+
+      showMessage(
+        "Account created successfully ✓",
+        "success"
+      );
+
+
+      signupForm.reset();
+
+
+    }
+
+    catch(error){
+
+
+      showMessage(
+        error.message,
+        "error"
+      );
+
+
+    }
+
+    finally{
+
+
+      submitBtn.disabled =
+        false;
+
+
+      submitBtn.textContent =
+        "Create Account";
+
+
+    }
+
+  }
+);
+
+</script>
+
+
+</body>
+
+</html> 
